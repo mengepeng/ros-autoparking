@@ -1,0 +1,6 @@
+*.a
+!lib.a
+*.log
+*.temp
+*.pyc
+/.idea		
