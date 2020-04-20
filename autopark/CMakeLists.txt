@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 2.8.3)
 project(autopark)
 
 ## Compile as C++11, supported in ROS Kinetic and newer
-# add_compile_options(-std=c++11)
+add_compile_options(-std=c++11)
 
 ## Find catkin macros and libraries
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
@@ -69,9 +69,9 @@ find_package(catkin REQUIRED COMPONENTS
 
 ## Generate added messages and services with any dependencies listed here
 # generate_messages(
-#   DEPENDENCIES
-#   std_msgs
-# )
+#  DEPENDENCIES
+#  std_msgs
+#)
 
 ################################################
 ## Declare ROS dynamic reconfigure parameters ##
@@ -116,7 +116,7 @@ catkin_package(
 ## Specify additional locations of header files
 ## Your package locations should be listed before other locations
 include_directories(
-# include
+  include 
   ${catkin_INCLUDE_DIRS}
 )
 
@@ -124,6 +124,21 @@ include_directories(
 # add_library(${PROJECT_NAME}
 #   src/${PROJECT_NAME}/autopark.cpp
 # )
+
+add_executable(parking_controller src/parking_controller.cpp)
+target_link_libraries(parking_controller ${catkin_LIBRARIES})
+
+add_executable(ultrasensors src/ultrasensors.cpp)
+target_link_libraries(ultrasensors ${catkin_LIBRARIES})
+
+add_executable(encoder src/encoder.cpp)
+target_link_libraries(encoder ${catkin_LIBRARIES})
+
+add_executable(motor_controller src/motor_controller.cpp)
+target_link_libraries(motor_controller ${catkin_LIBRARIES})
+
+add_executable(steering_controller src/steering_controller.cpp)
+target_link_libraries(steering_controller ${catkin_LIBRARIES})
 
 ## Add cmake target dependencies of the library
 ## as an example, code may need to be generated before libraries
