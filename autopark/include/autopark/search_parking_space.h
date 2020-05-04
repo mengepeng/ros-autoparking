@@ -24,7 +24,7 @@
 #include <std_msgs/Bool.h>
 #include <std_msgs/String.h>
 #include <std_msgs/Float32.h>
-#include <std_msgs/UInt8.h>
+#include <std_msgs/Header.h>
 #include <sensor_msgs/Range.h>
 
 
@@ -38,7 +38,7 @@ private:
 
     sensor_msgs::Range msg_apa_;
     std_msgs::Float32 msg_car_speed_;
-    std_msgs::UInt8 msg_parking_space_;
+    std_msgs::Header msg_parking_space_;
 
     std::queue<sensor_msgs::Range> que_apa_;
     std::vector<sensor_msgs::Range> vec_turnpoint_;

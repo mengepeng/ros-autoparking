@@ -32,23 +32,23 @@ void callback_parking_enable(const std_msgs::Bool::ConstPtr& msg)
 // CONSTRUCTOR: called when this object is created to set up subscribers and publishers
 SearchParkingSpace::SearchParkingSpace(ros::NodeHandle* nodehandle):nh_(*nodehandle)
 {
-    ROS_INFO("call constructor in search_parking_space_lb");
+    ROS_INFO("call constructor in search_parking_space_lf");
 
-    sub_apa_ = nh_.subscribe<sensor_msgs::Range>("apa_lb", 1, \
+    sub_apa_ = nh_.subscribe<sensor_msgs::Range>("apa_lf", 1, \
     &SearchParkingSpace::callback_apa, this);
 
     sub_car_speed_ = nh_.subscribe<std_msgs::Float32>("car_speed", 1, \
     &SearchParkingSpace::callback_car_speed, this);
 
-    pub_parking_space_ = nh_.advertise<std_msgs::UInt8>("parking_space_lb", 1);
+    pub_parking_space_ = nh_.advertise<std_msgs::Header>("parking_space_lf", 1);
 
-    msg_parking_space_.data = 0;    // initialize: 0 0 0 0  0 0 0 0
+    msg_parking_space_.seq = 0;    // initialize: 0 0 0 0  0 0 0 0
 }
 
 // DESTRUCTOR: called when this object is deleted to release memory 
 SearchParkingSpace::~SearchParkingSpace(void)
 {
-    ROS_INFO("call destructor in search_parking_space_lb");
+    ROS_INFO("call destructor in search_parking_space_lf");
 }
 
 // callback from custom callback queue
@@ -61,7 +61,7 @@ void SearchParkingSpace::callback_car_speed(const std_msgs::Float32::ConstPtr& m
 // callback from custom callback queue
 void SearchParkingSpace::callback_apa(const sensor_msgs::Range::ConstPtr& msg)
 {
-    ROS_INFO("call callback of apa_lb: range=%f", msg->range);
+    ROS_INFO("call callback of apa_lf: range=%f", msg->range);
     msg_apa_.header.stamp = msg->header.stamp;
     msg_apa_.header.frame_id = msg->header.frame_id;
     msg_apa_.range = msg->range;
@@ -134,7 +134,7 @@ void SearchParkingSpace::check_parking_space()
             break;
 
         case 2:     // two turn points in vec_turnpoint_
-            float obj_diff, obj_length;
+            double obj_diff, obj_length;
             // time duration between the first and second turn point
             obj_diff = (vec_turnpoint_[1].header.stamp - vec_turnpoint_[0].header.stamp).toSec();
             // parallel length of object
@@ -143,14 +143,14 @@ void SearchParkingSpace::check_parking_space()
             if (obj_length < perpendicular_width && obj_length > car_width)
             {
                 // perpendicular parking: 0 0 0 1  0 0 0 0
-                setbit(msg_parking_space_.data, 4);
-                clrbit(msg_parking_space_.data, 5);
+                setbit(msg_parking_space_.seq, 4);
+                clrbit(msg_parking_space_.seq, 5);
             }
             else if (obj_length < parallel_width && obj_length > car_length)
             {
                 // parallel parking: 0 0 1 0  0 0 0 0
-                setbit(msg_parking_space_.data, 5);
-                clrbit(msg_parking_space_.data, 4);
+                setbit(msg_parking_space_.seq, 5);
+                clrbit(msg_parking_space_.seq, 4);
             }
             else
             {
@@ -208,7 +208,7 @@ void SearchParkingSpace::check_parking_space()
             break;
 
         case 5:     // five turn points in vec_turnpoint_
-            float space_diff, space_width, space_length;
+            double space_diff, space_width, space_length;
             // time duration between the third and fourth turn point
             space_diff = (vec_turnpoint_[4].header.stamp - vec_turnpoint_[3].header.stamp).toSec();
             // width of space
@@ -221,17 +221,20 @@ void SearchParkingSpace::check_parking_space()
             (space_width > parallel_width && space_length > parallel_length))
             {
                 // parking space on the left side
-                setbit(msg_parking_space_.data, 6);     // 0 1 x x  0 0 0 0
+                setbit(msg_parking_space_.seq, 6);     // 0 1 x x  0 0 0 0
                 // 0 1 0 1  0 0 0 0: perpendicular parking on the left side
                 // 0 1 1 0  0 0 0 0: parallel parking space on the left side
                 // else: not a valid parking space
+
+                // set time stamp
+                msg_parking_space_.stamp = ros::Time::now();
                 // publish parking space
                 pub_parking_space_.publish(msg_parking_space_);
                 // reset parking space state
-                clrbit(msg_parking_space_.data, 6);     // 0 0 x x  0 0 0 0
+                clrbit(msg_parking_space_.seq, 6);     // 0 0 x x  0 0 0 0
             }
 
-            // delete fist messgae in que_apa_
+            // delete fist message in que_apa_
             que_apa_.pop();
             // clear all messages in vec_turnpoint_
             vec_turnpoint_.clear();

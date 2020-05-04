@@ -32,5 +32,7 @@ extern const float perpendicular_width;     // minimum width of perpendicular pa
 extern const float perpendicular_length;    // minimum length of perpendicular parking space
 extern const float car_width;               // minimum width of car
 extern const float car_length;              // minimum length of car
+extern const float distance_apa;            // distance between two apas at front and back
+extern const float apa_width;               // lateral range of apa
 
 #endif
