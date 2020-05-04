@@ -32,15 +32,15 @@ void callback_parking_enable(const std_msgs::Bool::ConstPtr& msg)
 // CONSTRUCTOR: called when this object is created to set up subscribers and publishers
 SearchParkingSpace::SearchParkingSpace(ros::NodeHandle* nodehandle):nh_(*nodehandle)
 {
-    ROS_INFO("call constructor in search_parking_space_lf");
+    ROS_INFO("call constructor in search_parking_space_lb");
 
-    sub_apa_ = nh_.subscribe<sensor_msgs::Range>("apa_lf", 1, \
+    sub_apa_ = nh_.subscribe<sensor_msgs::Range>("apa_lb", 1, \
     &SearchParkingSpace::callback_apa, this);
 
     sub_car_speed_ = nh_.subscribe<std_msgs::Float32>("car_speed", 1, \
     &SearchParkingSpace::callback_car_speed, this);
 
-    pub_parking_space_ = nh_.advertise<std_msgs::Header>("parking_space_lf", 1);
+    pub_parking_space_ = nh_.advertise<std_msgs::Header>("parking_space_lb", 1);
 
     msg_parking_space_.seq = 0;    // initialize: 0 0 0 0  0 0 0 0
 }
@@ -48,7 +48,7 @@ SearchParkingSpace::SearchParkingSpace(ros::NodeHandle* nodehandle):nh_(*nodehan
 // DESTRUCTOR: called when this object is deleted to release memory 
 SearchParkingSpace::~SearchParkingSpace(void)
 {
-    ROS_INFO("call destructor in search_parking_space_lf");
+    ROS_INFO("call destructor in search_parking_space_lb");
 }
 
 // callback from custom callback queue
@@ -61,7 +61,7 @@ void SearchParkingSpace::callback_car_speed(const std_msgs::Float32::ConstPtr& m
 // callback from custom callback queue
 void SearchParkingSpace::callback_apa(const sensor_msgs::Range::ConstPtr& msg)
 {
-    ROS_INFO("call callback of apa_lf: range=%f", msg->range);
+    ROS_INFO("call callback of apa_lb: range=%f", msg->range);
     msg_apa_.header.stamp = msg->header.stamp;
     msg_apa_.header.frame_id = msg->header.frame_id;
     msg_apa_.range = msg->range;

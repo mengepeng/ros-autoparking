@@ -33,7 +33,7 @@ int main(int argc, char **argv)
 
             ros::spinOnce();
             // shutdown this node
-            //ros::shutdown();
+            ros::shutdown();    // this node only run once at begin
         }
     }
 

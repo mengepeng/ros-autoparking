@@ -32,7 +32,7 @@ using namespace std;
 // CONSTRUCTOR: called when this object is created to set up subscribers and publishers
 ChooseParkingSpace::ChooseParkingSpace()
 {
-    ROS_INFO("call constructor in search_parking_space_lf");
+    ROS_INFO("call constructor in choose_parking_space");
 
     sub_car_speed_ = nh_.subscribe<std_msgs::Float32>("car_speed", 1, \
     &ChooseParkingSpace::callback_car_speed, this);
@@ -148,6 +148,7 @@ void ChooseParkingSpace::callback_parking_space_rb(const std_msgs::Header::Const
 // choose a parking space: parking space on the right side has priority
 void ChooseParkingSpace::choose_parking_space()
 {
+    ROS_INFO("call choose function");
     // parallel parking space on the right side
     if (msg_parking_space_.seq & SPACE_RIGHT_PARALLEL == SPACE_RIGHT_PARALLEL)
     {
