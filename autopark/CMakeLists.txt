@@ -103,7 +103,7 @@ find_package(catkin REQUIRED COMPONENTS
 ## CATKIN_DEPENDS: catkin_packages dependent projects also need
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
-#  INCLUDE_DIRS include
+  INCLUDE_DIRS include
 #  LIBRARIES autopark
 #  CATKIN_DEPENDS roscpp rospy std_msgs
 #  DEPENDS system_lib
@@ -121,24 +121,74 @@ include_directories(
 )
 
 ## Declare a C++ library
-# add_library(${PROJECT_NAME}
-#   src/${PROJECT_NAME}/autopark.cpp
-# )
+add_library(autoparking
+  include/autopark/autoparking.h
+  src/autoparking.cpp
+)
+target_link_libraries(autoparking ${catkin_LIBRARIES})
+add_dependencies(autoparking ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
-add_executable(parking_controller src/parking_controller.cpp)
-target_link_libraries(parking_controller ${catkin_LIBRARIES})
 
-add_executable(ultrasensors src/ultrasensors.cpp)
-target_link_libraries(ultrasensors ${catkin_LIBRARIES})
+add_executable(controller_parking src/controller/controller_parking.cpp)
+target_link_libraries(controller_parking ${catkin_LIBRARIES})
 
-add_executable(encoder src/encoder.cpp)
-target_link_libraries(encoder ${catkin_LIBRARIES})
+add_executable(controller_motor src/controller/controller_motor.cpp)
+target_link_libraries(controller_motor ${catkin_LIBRARIES})
 
-add_executable(motor_controller src/motor_controller.cpp)
-target_link_libraries(motor_controller ${catkin_LIBRARIES})
+add_executable(controller_steering src/controller/controller_steering.cpp)
+target_link_libraries(controller_steering ${catkin_LIBRARIES})
 
-add_executable(steering_controller src/steering_controller.cpp)
-target_link_libraries(steering_controller ${catkin_LIBRARIES})
+add_executable(sensor_encoder src/sensor/sensor_encoder.cpp)
+target_link_libraries(sensor_encoder ${catkin_LIBRARIES})
+
+add_executable(sensor_apa_lf src/sensor/sensor_apa_lf.cpp)
+target_link_libraries(sensor_apa_lf ${catkin_LIBRARIES})
+
+add_executable(sensor_apa_lb src/sensor/sensor_apa_lb.cpp)
+target_link_libraries(sensor_apa_lb ${catkin_LIBRARIES})
+
+add_executable(sensor_apa_rf src/sensor/sensor_apa_rf.cpp)
+target_link_libraries(sensor_apa_rf ${catkin_LIBRARIES})
+
+add_executable(sensor_apa_rb src/sensor/sensor_apa_rb.cpp)
+target_link_libraries(sensor_apa_rb ${catkin_LIBRARIES})
+
+add_executable(sensor_upa_fl src/sensor/sensor_upa_fl.cpp)
+target_link_libraries(sensor_upa_fl ${catkin_LIBRARIES})
+
+add_executable(sensor_upa_fcl src/sensor/sensor_upa_fcl.cpp)
+target_link_libraries(sensor_upa_fcl ${catkin_LIBRARIES})
+
+add_executable(sensor_upa_fcr src/sensor/sensor_upa_fcr.cpp)
+target_link_libraries(sensor_upa_fcr ${catkin_LIBRARIES})
+
+add_executable(sensor_upa_fr src/sensor/sensor_upa_fr.cpp)
+target_link_libraries(sensor_upa_fr ${catkin_LIBRARIES})
+
+add_executable(sensor_upa_bl src/sensor/sensor_upa_bl.cpp)
+target_link_libraries(sensor_upa_bl ${catkin_LIBRARIES})
+
+add_executable(sensor_upa_bcl src/sensor/sensor_upa_bcl.cpp)
+target_link_libraries(sensor_upa_bcl ${catkin_LIBRARIES})
+
+add_executable(sensor_upa_bcr src/sensor/sensor_upa_bcr.cpp)
+target_link_libraries(sensor_upa_bcr ${catkin_LIBRARIES})
+
+add_executable(sensor_upa_br src/sensor/sensor_upa_br.cpp)
+target_link_libraries(sensor_upa_br ${catkin_LIBRARIES})
+
+add_executable(search_parking_space_lf src/search_parking_space_lf.cpp)
+target_link_libraries(search_parking_space_lf autoparking ${catkin_LIBRARIES})
+
+add_executable(search_parking_space_lb src/search_parking_space_lb.cpp)
+target_link_libraries(search_parking_space_lb autoparking ${catkin_LIBRARIES})
+
+add_executable(search_parking_space_rf src/search_parking_space_rf.cpp)
+target_link_libraries(search_parking_space_rf autoparking ${catkin_LIBRARIES})
+
+add_executable(search_parking_space_rb src/search_parking_space_rb.cpp)
+target_link_libraries(search_parking_space_rb autoparking ${catkin_LIBRARIES})
+
 
 ## Add cmake target dependencies of the library
 ## as an example, code may need to be generated before libraries

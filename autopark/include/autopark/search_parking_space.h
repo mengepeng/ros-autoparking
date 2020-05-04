@@ -3,7 +3,7 @@
  * Version: v1.0
  * Author: Meng Peng
  * Date: 2020-04-22
- * Description: class for searching parking space
+ * Description: class for search parking space
  * 
  ******************************************************************/
 
@@ -34,7 +34,6 @@ private:
     ros::NodeHandle nh_;
     ros::Subscriber sub_apa_;
     ros::Subscriber sub_car_speed_;
-    ros::Subscriber sub_parking_state_;
     ros::Publisher pub_parking_space_;
 
     sensor_msgs::Range msg_apa_;
