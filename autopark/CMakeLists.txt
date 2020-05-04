@@ -189,6 +189,9 @@ target_link_libraries(search_parking_space_rf autoparking ${catkin_LIBRARIES})
 add_executable(search_parking_space_rb src/search_parking_space_rb.cpp)
 target_link_libraries(search_parking_space_rb autoparking ${catkin_LIBRARIES})
 
+add_executable(choose_parking_space src/choose_parking_space.cpp)
+target_link_libraries(choose_parking_space autoparking ${catkin_LIBRARIES})
+
 
 ## Add cmake target dependencies of the library
 ## as an example, code may need to be generated before libraries

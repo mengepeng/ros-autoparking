@@ -4,45 +4,181 @@
  * Author: Meng Peng
  * Date: 2020-05-03
  * Description: choose parking space according to message from the 
- * topic parking_space
+ * topics of parking_space
  * 
  ******************************************************************/
 
-#include <string>
-#include <sstream>
-#include <ros/ros.h>
-#include <std_msgs/String.h>
+#include "autopark/autoparking.h"
+#include "autopark/choose_parking_space.h"
 
-// global variable to update message from topic cmd_move
-std::string cmd_move = "";
+using namespace std;
 
-// callback funktion of subscriber
-void callback_cmd_turn(const std_msgs::String::ConstPtr& msg)
+//  x   x   x   x     x   x   x   x
+// high four bits for left side, low four bits for left side
+// 7 bit: not used
+// 6 bit: parking space on the left side
+// 5 bit: parking type is parallel parking
+// 4 bit: parking type is perpendicular parking
+// 3 bit: not used
+// 2 bit: parking space on the right side
+// 1 bit: parking type is parallel parking
+// 0 bit: parking type is perpendicular parking
+#define SPACE_LEFT_PARALLEL         0x96    // 0 1 1 0  0 0 0 0
+#define SPACE_LEFT_PERPENDICULAR    0x80    // 0 1 0 1  0 0 0 0
+#define SPACE_RIGHT_PARALLEL        0x06    // 0 0 0 0  0 1 1 0
+#define SPACE_RIGHT_PERPENDICULAR   0x05    // 0 0 0 0  0 1 0 1
+
+
+// CONSTRUCTOR: called when this object is created to set up subscribers and publishers
+ChooseParkingSpace::ChooseParkingSpace()
 {
-    ROS_INFO("cmd_move: %s", msg->data.c_str());
-    std::stringstream ss;
-    ss << msg->data.c_str();
-    ss >> cmd_move;
+    ROS_INFO("call constructor in search_parking_space_lf");
+
+    sub_car_speed_ = nh_.subscribe<std_msgs::Float32>("car_speed", 1, \
+    &ChooseParkingSpace::callback_car_speed, this);
+
+    sub_parking_space_lf_ = nh_.subscribe<std_msgs::Header>("parking_space_lf", 1, \
+    &ChooseParkingSpace::callback_parking_space_lf, this);
+
+    sub_parking_space_lb_ = nh_.subscribe<std_msgs::Header>("parking_space_lb", 1, \
+    &ChooseParkingSpace::callback_parking_space_lb, this);
+
+    sub_parking_space_rf_ = nh_.subscribe<std_msgs::Header>("parking_space_rf", 1, \
+    &ChooseParkingSpace::callback_parking_space_rf, this);
+
+    sub_parking_space_rb_ = nh_.subscribe<std_msgs::Header>("parking_space_rb", 1, \
+    &ChooseParkingSpace::callback_parking_space_rb, this);
+
+    pub_parking_start_ = nh_.advertise<std_msgs::Header>("parking_space", 1);
+
+    // initialize:
+    msg_parking_space_.seq = 0;            // 0 0 0 0  0 0 0 0
 }
 
-// function to check subscribed message from topic parking_space
-void check_cmd_move(std::string cmd_str)
+// DESTRUCTOR: called when this object is deleted to release memory 
+ChooseParkingSpace::~ChooseParkingSpace(void)
 {
-    ROS_INFO("check cmd_move: %s", cmd_str.c_str());
-    if(cmd_str == "forward")
+    ROS_INFO("call destructor in choose_parking_space");
+}
+
+// callbacks from custom callback queue
+// callback of sub_car_speed_
+void ChooseParkingSpace::callback_car_speed(const std_msgs::Float32::ConstPtr& msg)
+{
+    ROS_INFO("call callback of car_speed: speed=%f", msg->data);
+    msg_car_speed_.data = msg->data;
+}
+
+// callback of sub_parking_space_lf_
+void ChooseParkingSpace::callback_parking_space_lf(const std_msgs::Header::ConstPtr& msg)
+{
+    ROS_INFO("call callback_parking_space_lf: %d", msg->seq);
+
+    msg_parking_space_lf_.seq = msg->seq;
+    msg_parking_space_lf_.stamp = msg->stamp;
+    que_parking_space_lf_.push(msg_parking_space_lf_);
+}
+
+// callback of sub_parking_space_lb_
+void ChooseParkingSpace::callback_parking_space_lb(const std_msgs::Header::ConstPtr& msg)
+{
+    ROS_INFO("call callback_parking_space_lb: %d", msg->seq);
+
+    msg_parking_space_lb_.seq = msg->seq;
+    msg_parking_space_lb_.stamp = msg->stamp;
+    if (!que_parking_space_lf_.empty())
     {
-        ROS_INFO("move forward");
-        do_move('D');
+        // time duration messages from parking_space_lf and parking_space_lb
+        double time_diff, distance_fb;
+        time_diff = (msg_parking_space_lb_.stamp - que_parking_space_lf_.front().stamp).toSec();
+        // car moved distance
+        distance_fb = msg_car_speed_.data * time_diff;
+
+        // check parking space
+        if (abs(distance_fb - distance_apa) < apa_width)
+        {
+            msg_parking_space_.seq = que_parking_space_lf_.front().seq & msg_parking_space_lb_.seq;
+
+            // choose parking space
+            choose_parking_space();
+        }
+        // delete first message in que_parking_space_lf_
+        que_parking_space_lf_.pop();
     }
-    if(cmd_str == "backward")
+}
+
+// callback of sub_parking_space_rf_
+void ChooseParkingSpace::callback_parking_space_rf(const std_msgs::Header::ConstPtr& msg)
+{
+    ROS_INFO("call callback_parking_space_rf: %d", msg->seq);
+
+    msg_parking_space_rf_.seq = msg->seq;
+    msg_parking_space_rf_.stamp = msg->stamp;
+    que_parking_space_rf_.push(msg_parking_space_rf_);
+}
+
+// callback of sub_parking_space_rb_
+void ChooseParkingSpace::callback_parking_space_rb(const std_msgs::Header::ConstPtr& msg)
+{
+    ROS_INFO("call callback_parking_space_rb: %d", msg->seq);
+
+    msg_parking_space_rb_.seq = msg->seq;
+    msg_parking_space_rb_.stamp = msg->stamp;
+    if (!que_parking_space_rf_.empty())
     {
-        ROS_INFO("move backward");
-        do_move('B');
+        // time duration messages from parking_space_lf and parking_space_lb
+        double time_diff, distance_fb;
+        time_diff = (msg_parking_space_rb_.stamp - que_parking_space_rf_.front().stamp).toSec();
+        // car moved distance
+        distance_fb = msg_car_speed_.data * time_diff;
+
+        // check parking space
+        if (abs(distance_fb - distance_apa) < apa_width)
+        {
+            msg_parking_space_.seq = que_parking_space_rf_.front().seq & msg_parking_space_rb_.seq;
+
+            // choose parking
+            choose_parking_space();
+        }
+        // delete first message in que_parking_space_rf_
+        que_parking_space_rf_.pop();
     }
-    if(cmd_str == "stop")
+}
+
+// choose a parking space: parking space on the right side has priority
+void ChooseParkingSpace::choose_parking_space()
+{
+    // parallel parking space on the right side
+    if (msg_parking_space_.seq & SPACE_RIGHT_PARALLEL == SPACE_RIGHT_PARALLEL)
     {
-        ROS_INFO("stop");
-        do_move('P');
+        msg_parking_space_.seq = SPACE_RIGHT_PARALLEL;
+        msg_parking_space_.stamp = ros::Time::now();
+        pub_parking_start_.publish(msg_parking_space_);
+    }
+    // perpendicular parking space on the right side 
+    else if (msg_parking_space_.seq & SPACE_RIGHT_PERPENDICULAR == SPACE_RIGHT_PERPENDICULAR)
+    {
+        msg_parking_space_.seq = SPACE_RIGHT_PERPENDICULAR;
+        msg_parking_space_.stamp = ros::Time::now();
+        pub_parking_start_.publish(msg_parking_space_);
+    }
+    // parallel parking space on the left side
+    else if (msg_parking_space_.seq & SPACE_LEFT_PARALLEL == SPACE_LEFT_PARALLEL)
+    {
+        msg_parking_space_.seq = SPACE_LEFT_PARALLEL;
+        msg_parking_space_.stamp = ros::Time::now();
+        pub_parking_start_.publish(msg_parking_space_);
+    }
+    // perpendicular parking space on the left side
+    else if (msg_parking_space_.seq & SPACE_LEFT_PERPENDICULAR == SPACE_LEFT_PERPENDICULAR)
+    {
+        msg_parking_space_.seq = SPACE_LEFT_PERPENDICULAR;
+        msg_parking_space_.stamp = ros::Time::now();
+        pub_parking_start_.publish(msg_parking_space_);
+    }
+    else
+    {
+        // do nothing
     }
 }
 
@@ -50,22 +186,14 @@ void check_cmd_move(std::string cmd_str)
 int main(int argc, char **argv)
 {
     ros::init(argc, argv, "choose_parking_space");
-    ros::NodeHandle nh;
-    ros::Subscriber sub = nh.subscribe<std_msgs::String>("cmd_move", 1, callback_cmd_turn);
 
-    ros::Rate loop_rate(1);
-    while (ros::ok())
-    {
-        ros::spinOnce();
+    // instantiating an object of class ChooseParkingSpace
+    ChooseParkingSpace ChooseParkingSpace_obj;
 
-        if (cmd_move != "")
-        {
-            check_cmd_move(cmd_move);
-            cmd_move = "";
-        }
-
-        loop_rate.sleep();
-    }
+    // use 5 threads for 5 callbacks
+    ros::AsyncSpinner spinner(5);
+    spinner.start();
+    ros::waitForShutdown();
 
     return 0;
 }
