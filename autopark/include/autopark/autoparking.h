@@ -10,7 +10,6 @@
 #ifndef AUTOPARKING_H_
 #define AUTOPARKING_H_
 
-#include <stdio.h>
 #define setbit(x, y) x|=(1<<y)
 #define clrbit(x, y) x&=~(1<<y)
 //  x   x   x   x     x   x   x   x
@@ -23,6 +22,13 @@
 // 2 bit: parking space on the right side
 // 1 bit: parking type is parallel parking
 // 0 bit: parking type is perpendicular parking
+#define SPACE_PARALLEL              0x34    // 0 0 1 0  0 0 1 0
+#define SPACE_PERPENDICULAR         0x17    // 0 0 0 1  0 0 0 1
+#define SPACE_LEFT_PARALLEL         0x96    // 0 1 1 0  0 0 0 0
+#define SPACE_LEFT_PERPENDICULAR    0x80    // 0 1 0 1  0 0 0 0
+#define SPACE_RIGHT_PARALLEL        0x06    // 0 0 0 0  0 1 1 0
+#define SPACE_RIGHT_PERPENDICULAR   0x05    // 0 0 0 0  0 1 0 1
+
 
 extern const float range_diff;              // range difference to distinguish turn point 
 extern const float distance_search;         // maximum distance between car and parking space

@@ -21,7 +21,7 @@ int main(int argc, char **argv)
     //set message data
     flt_msg.data = 5;   // 5 m/s = 18 km/h
 
-    ros::Rate loop_rate(50);
+    ros::Rate loop_rate(10);
     while (nh.ok())
     {
         // output the published message

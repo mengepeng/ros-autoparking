@@ -13,21 +13,6 @@
 
 using namespace std;
 
-//  x   x   x   x     x   x   x   x
-// high four bits for left side, low four bits for left side
-// 7 bit: not used
-// 6 bit: parking space on the left side
-// 5 bit: parking type is parallel parking
-// 4 bit: parking type is perpendicular parking
-// 3 bit: not used
-// 2 bit: parking space on the right side
-// 1 bit: parking type is parallel parking
-// 0 bit: parking type is perpendicular parking
-#define SPACE_LEFT_PARALLEL         0x96    // 0 1 1 0  0 0 0 0
-#define SPACE_LEFT_PERPENDICULAR    0x80    // 0 1 0 1  0 0 0 0
-#define SPACE_RIGHT_PARALLEL        0x06    // 0 0 0 0  0 1 1 0
-#define SPACE_RIGHT_PERPENDICULAR   0x05    // 0 0 0 0  0 1 0 1
-
 
 // CONSTRUCTOR: called when this object is created to set up subscribers and publishers
 ChooseParkingSpace::ChooseParkingSpace()
@@ -65,7 +50,7 @@ ChooseParkingSpace::~ChooseParkingSpace(void)
 // callback of sub_car_speed_
 void ChooseParkingSpace::callback_car_speed(const std_msgs::Float32::ConstPtr& msg)
 {
-    ROS_INFO("call callback of car_speed: speed=%f", msg->data);
+    //ROS_INFO("call callback of car_speed: speed=%f", msg->data);
     msg_car_speed_.data = msg->data;
 }
 

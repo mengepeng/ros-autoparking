@@ -15,7 +15,7 @@ int main(int argc, char **argv)
 {
     ros::init(argc, argv, "controller_parking");
     ros::NodeHandle nh;
-    ros::Publisher pub = nh.advertise<std_msgs::Bool>("parking_enable", 1);
+    ros::Publisher pub = nh.advertise<std_msgs::Bool>("parking_enable", 10);
 
     // define message
     std_msgs::Bool msg_enable;

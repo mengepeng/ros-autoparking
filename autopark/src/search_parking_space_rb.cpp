@@ -72,7 +72,7 @@ void SearchParkingSpace::callback_apa(const sensor_msgs::Range::ConstPtr& msg)
 // check function to find parking space
 void SearchParkingSpace::check_parking_space()
 {
-    ROS_INFO("call check function");
+    ROS_INFO("call check function in search_parking_space_rb");
     if (que_apa_.empty())
     {
         //detected object in the range of distance_search
@@ -226,6 +226,22 @@ void SearchParkingSpace::check_parking_space()
                 // 0 1 1 0  0 0 0 0: parallel parking space on the right side
                 // else: not a valid parking space
 
+                // in case of specific parking space with 3 walls
+                // perpendicular parking space
+                if (space_width < parallel_width)
+                {
+                    // perpendicular parking: 0 0 0 0  0 0 0 1
+                    setbit(msg_parking_space_.seq, 0);
+                    clrbit(msg_parking_space_.seq, 1);
+                }
+                // parallel parking space
+                if (space_length < perpendicular_length)
+                {
+                    // parallel parking: 0 0 0 0  0 0 1 0
+                    setbit(msg_parking_space_.seq, 1);
+                    clrbit(msg_parking_space_.seq, 0);
+                }
+
                 // set time stamp
                 msg_parking_space_.stamp = ros::Time::now();
                 // publish parking space
@@ -287,7 +303,7 @@ int main(int argc, char **argv)
                 callback_queue.clear();
                 // start spinners for custom callback queue
                 sp_spinner->start();
-                ROS_INFO("Spinners enabled");
+                ROS_INFO("Spinners enabled in search_parking_space");
 
                 trigger_spinner = true;
             }
@@ -305,7 +321,7 @@ int main(int argc, char **argv)
             {
                 // stop spinners for custom callback queue
                 sp_spinner->stop();
-                ROS_INFO("Spinner disabled");
+                ROS_INFO("Spinners disabled in search_parking_space_rb");
 
                 trigger_spinner = false;
             }

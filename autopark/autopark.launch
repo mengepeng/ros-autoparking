@@ -1,0 +1,15 @@
+<?xml version="1.0"?>
+<launch>
+	<node pkg="autopark" type="controller_parking" name="controller_parking" output="screen" />
+	<node pkg="autopark" type="search_parking_space_lf" name="search_parking_space_lf" output="screen" />
+	<node pkg="autopark" type="search_parking_space_lb" name="search_parking_space_lb" output="screen" />
+	<node pkg="autopark" type="search_parking_space_rf" name="search_parking_space_rf" output="screen" />
+	<node pkg="autopark" type="search_parking_space_rb" name="search_parking_space_rb" output="screen" />
+	<node pkg="autopark" type="choose_parking_space" name="choose_parking_space" output="screen" />
+
+	<node pkg="autopark" type="sensor_encoder" name="sensor_encoder" output="screen" />
+	<node pkg="autopark" type="sensor_apa_lf" name="sensor_apa_lf" output="screen" />
+	<node pkg="autopark" type="sensor_apa_lb" name="sensor_apa_lb" output="screen" />
+	<node pkg="autopark" type="sensor_apa_rf" name="sensor_apa_rf" output="screen" />
+	<node pkg="autopark" type="sensor_apa_rb" name="sensor_apa_rb" output="screen" />
+</launch>
