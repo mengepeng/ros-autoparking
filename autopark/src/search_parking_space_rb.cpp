@@ -54,14 +54,14 @@ SearchParkingSpace::~SearchParkingSpace(void)
 // callback from custom callback queue
 void SearchParkingSpace::callback_car_speed(const std_msgs::Float32::ConstPtr& msg)
 {
-    ROS_INFO("call callback of car_speed: speed=%f", msg->data);
+    //ROS_INFO("call callback of car_speed: speed=%f", msg->data);
     msg_car_speed_.data = msg->data;
 }
 
 // callback from custom callback queue
 void SearchParkingSpace::callback_apa(const sensor_msgs::Range::ConstPtr& msg)
 {
-    ROS_INFO("call callback of apa_rb: range=%f", msg->range);
+    //ROS_INFO("call callback of apa_rb: range=%f", msg->range);
     msg_apa_.header.stamp = msg->header.stamp;
     msg_apa_.header.frame_id = msg->header.frame_id;
     msg_apa_.range = msg->range;
@@ -291,7 +291,7 @@ int main(int argc, char **argv)
     sp_spinner.reset(new ros::AsyncSpinner(0, &callback_queue));
 
     // set loop rate very large or just do not use rate to ensure process as fast as possible
-    ros::Rate loop_rate(100);
+    ros::Rate loop_rate(1000);
     while (ros::ok())
     {
         if (parking_enable)
@@ -303,7 +303,7 @@ int main(int argc, char **argv)
                 callback_queue.clear();
                 // start spinners for custom callback queue
                 sp_spinner->start();
-                ROS_INFO("Spinners enabled in search_parking_space");
+                ROS_INFO("Spinners enabled in search_parking_space_rb");
 
                 trigger_spinner = true;
             }
