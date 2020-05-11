@@ -14,13 +14,20 @@
 using namespace std;
 
 
+// define struct of Times for stop situation during check and choose parking space
+struct Times
+{
+    ros::Time begin;
+    ros::Time end;
+    double duration;
+    bool trigger;
+} time_left, time_right;    // define two objects for left and right side
+
+
 // CONSTRUCTOR: called when this object is created to set up subscribers and publishers
 ChooseParkingSpace::ChooseParkingSpace()
 {
     ROS_INFO("call constructor in choose_parking_space");
-
-    sub_car_speed_ = nh_.subscribe<std_msgs::Float32>("car_speed", 1, \
-    &ChooseParkingSpace::callback_car_speed, this);
 
     sub_parking_space_lf_ = nh_.subscribe<std_msgs::Header>("parking_space_lf", 1, \
     &ChooseParkingSpace::callback_parking_space_lf, this);
@@ -50,8 +57,39 @@ ChooseParkingSpace::~ChooseParkingSpace(void)
 // callback of sub_car_speed_
 void ChooseParkingSpace::callback_car_speed(const std_msgs::Float32::ConstPtr& msg)
 {
-    //ROS_INFO("call callback of car_speed: speed=%f", msg->data);
+    ROS_INFO("call callback of car_speed: speed=%f", msg->data);
     msg_car_speed_.data = msg->data;
+
+    if (!que_parking_space_lf_.empty())
+    {
+        if (msg_car_speed_.data == 0 && !time_left.trigger)
+        {
+            time_left.begin = ros::Time::now();
+            time_left.trigger = true;
+        }
+        if (msg_car_speed_.data != 0 && time_left.trigger)
+        {
+            time_left.end = ros::Time::now();
+            time_left.trigger = false;
+
+            time_left.duration += (time_left.end - time_left.begin).toSec();
+        }
+    }
+    if (!que_parking_space_rf_.empty())
+    {
+        if (msg_car_speed_.data == 0 && !time_right.trigger)
+        {
+            time_right.begin = ros::Time::now();
+            time_right.trigger = true;
+        }
+        if (msg_car_speed_.data != 0 && time_right.trigger)
+        {
+            time_right.end = ros::Time::now();
+            time_right.trigger = false;
+
+            time_right.duration += (time_right.end - time_right.begin).toSec();
+        }
+    }
 }
 
 // callback of sub_parking_space_lf_
@@ -74,13 +112,14 @@ void ChooseParkingSpace::callback_parking_space_lb(const std_msgs::Header::Const
     if (!que_parking_space_lf_.empty())
     {
         // time duration messages from parking_space_lf and parking_space_lb
-        double time_diff, distance_fb;
-        time_diff = (msg_parking_space_lb_.stamp - que_parking_space_lf_.front().stamp).toSec();
+        double time_diff = (msg_parking_space_lb_.stamp - que_parking_space_lf_.front().stamp).toSec();
         // car moved distance
-        distance_fb = msg_car_speed_.data * time_diff;
+        double distance_fb = msg_car_speed_.data * (time_diff - time_left.duration);
+        // reset time duration for stop
+        time_left.duration = 0;
 
         // check parking space
-        if (abs(distance_fb - distance_apa) < apa_width)
+        if (fabs(distance_fb - distance_apa) < apa_width)
         {
             msg_parking_space_.seq = que_parking_space_lf_.front().seq & msg_parking_space_lb_.seq;
 
@@ -112,13 +151,14 @@ void ChooseParkingSpace::callback_parking_space_rb(const std_msgs::Header::Const
     if (!que_parking_space_rf_.empty())
     {
         // time duration messages from parking_space_lf and parking_space_lb
-        double time_diff, distance_fb;
-        time_diff = (msg_parking_space_rb_.stamp - que_parking_space_rf_.front().stamp).toSec();
+        double time_diff = (msg_parking_space_rb_.stamp - que_parking_space_rf_.front().stamp).toSec();
         // car moved distance
-        distance_fb = msg_car_speed_.data * time_diff;
+        double distance_fb = msg_car_speed_.data * (time_diff - time_right.duration);
+        // reset time duration for stop
+        time_right.duration = 0;
 
         // check parking space
-        if (abs(distance_fb - distance_apa) < apa_width)
+        if (fabs(distance_fb - distance_apa) < apa_width)
         {
             msg_parking_space_.seq = que_parking_space_rf_.front().seq & msg_parking_space_rb_.seq;
 
@@ -175,6 +215,13 @@ int main(int argc, char **argv)
 
     // instantiating an object of class ChooseParkingSpace
     ChooseParkingSpace ChooseParkingSpace_obj;
+
+    // initialize: 
+    time_left.duration = 0;
+    time_left.trigger = false;
+
+    time_right.duration = 0;
+    time_right.trigger = false;
 
     // use 5 threads for 5 callbacks
     ros::AsyncSpinner spinner(5);

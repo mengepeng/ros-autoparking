@@ -15,7 +15,6 @@
 #include <algorithm>
 #include <string>
 #include <sstream>
-#include <stdio.h>
 
 #include <ros/ros.h>
 #include <ros/spinner.h>
