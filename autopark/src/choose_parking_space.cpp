@@ -216,7 +216,7 @@ int main(int argc, char **argv)
     // instantiating an object of class ChooseParkingSpace
     ChooseParkingSpace ChooseParkingSpace_obj;
 
-    // initialize: 
+    // initialize Times: 
     time_left.duration = 0;
     time_left.trigger = false;
 

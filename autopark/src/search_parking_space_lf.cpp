@@ -20,6 +20,15 @@ static float distance_min;              // minimum distance between car and obje
 
 boost::shared_ptr<ros::AsyncSpinner> sp_spinner;   // create a shared_ptr for AsyncSpinner object
 
+// define struct of Times for stop situation during check parking space
+struct Times
+{
+    ros::Time begin;
+    ros::Time end;
+    double duration;
+    bool trigger;
+} time_2, time_5;    // define two objects for case 2 and case 5
+
 
 // callback from global callback queue
 void callback_parking_enable(const std_msgs::Bool::ConstPtr& msg)
@@ -57,6 +66,37 @@ void SearchParkingSpace::callback_car_speed(const std_msgs::Float32::ConstPtr& m
 {
     ROS_INFO("call callback of car_speed: speed=%f", msg->data);
     msg_car_speed_.data = msg->data;
+
+    if (vec_turnpoint_.size() == 1)
+    {
+        if (msg_car_speed_.data == 0 && !time_2.trigger)
+        {
+            time_2.begin = ros::Time::now();
+            time_2.trigger = true;
+        }
+        if (msg_car_speed_.data != 0 && time_2.trigger)
+        {
+            time_2.end = ros::Time::now();
+            time_2.trigger = false;
+
+            time_2.duration += (time_2.end - time_2.begin).toSec();
+        }
+    }
+    if (vec_turnpoint_.size() == 3)
+    {
+        if (msg_car_speed_.data == 0 && !time_5.trigger)
+        {
+            time_5.begin = ros::Time::now();
+            time_5.trigger = true;
+        }
+        if (msg_car_speed_.data != 0 && time_5.trigger)
+        {
+            time_5.end = ros::Time::now();
+            time_5.trigger = false;
+
+            time_5.duration += (time_5.end - time_5.begin).toSec();
+        }
+    }
 }
 
 // callback of sub_apa_
@@ -132,6 +172,8 @@ void SearchParkingSpace::check_parking_space()
                     distance_min = que_apa_.back().range;  // get new distance_min
                 }
             }
+
+
             break;
 
         case 2:     // two turn points in vec_turnpoint_
@@ -139,7 +181,9 @@ void SearchParkingSpace::check_parking_space()
             // time duration between the first and second turn point
             obj_diff = (vec_turnpoint_[1].header.stamp - vec_turnpoint_[0].header.stamp).toSec();
             // parallel length of object
-            obj_length = msg_car_speed_.data * obj_diff;
+            obj_length = msg_car_speed_.data * (obj_diff - time_2.duration);
+            // reset time duration for stop
+            time_2.duration = 0;
             
             if (obj_length < perpendicular_width && obj_length > car_width)
             {
@@ -213,7 +257,10 @@ void SearchParkingSpace::check_parking_space()
             // time duration between the third and fourth turn point
             space_diff = (vec_turnpoint_[4].header.stamp - vec_turnpoint_[3].header.stamp).toSec();
             // width of space
-            space_width = msg_car_speed_.data * space_diff;
+            space_width = msg_car_speed_.data * (space_diff - time_5.duration);
+            // reset time duration for stop
+            time_5.duration = 0;
+
             // length of space
             space_length = min(vec_turnpoint_[3].range, vec_turnpoint_[4].range) - \
             min(distance_min, vec_turnpoint_[5].range);
@@ -290,6 +337,13 @@ int main(int argc, char **argv)
 
     // create AsyncSpinner, run it on all available cores to process custom callback queue
     sp_spinner.reset(new ros::AsyncSpinner(0, &callback_queue));
+
+    // initialize Times: 
+    time_2.duration = 0;
+    time_2.trigger = false;
+
+    time_5.duration = 0;
+    time_5.trigger = false;
 
     // set loop rate very large or just do not use rate to ensure process as fast as possible
     ros::Rate loop_rate(1000);
