@@ -3,7 +3,7 @@
  * Version: v1.0
  * Author: Meng Peng
  * Date: 2020-04-15
- * Description: publish "start" message to the topic parking_state
+ * Description: publish "start" message to the topic parking_enable
  * 
  ******************************************************************/
 

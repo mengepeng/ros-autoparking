@@ -19,3 +19,6 @@ const float car_width = 1.8;            // minimum width of car
 const float car_length = 4.8;           // minimum length of car
 const float distance_apa = 4;           // distance between two apas at front and back of car
 const float apa_width = 0.5;            // lateral range of apa
+
+const float brake_distance_s = 0.2;     // minimum distance between car and object on both sides
+const float parking_distance = 0.4;     // minimum distance between car and object when park in

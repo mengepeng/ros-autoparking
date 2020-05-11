@@ -39,4 +39,7 @@ extern const float car_length;              // minimum length of car
 extern const float distance_apa;            // distance between two apas at front and back
 extern const float apa_width;               // lateral range of apa
 
+extern const float brake_distance_s;        // minimum distance between car and object on both sides
+extern const float parking_distance;        // minimum distance between car and object when park in
+
 #endif
