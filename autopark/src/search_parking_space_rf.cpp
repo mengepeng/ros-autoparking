@@ -51,17 +51,18 @@ SearchParkingSpace::~SearchParkingSpace(void)
     ROS_INFO("call destructor in search_parking_space_rf");
 }
 
-// callback from custom callback queue
+// callbacks from custom callback queue
+// callback of sub_car_speed_
 void SearchParkingSpace::callback_car_speed(const std_msgs::Float32::ConstPtr& msg)
 {
-    //ROS_INFO("call callback of car_speed: speed=%f", msg->data);
+    ROS_INFO("call callback of car_speed: speed=%f", msg->data);
     msg_car_speed_.data = msg->data;
 }
 
-// callback from custom callback queue
+// callback of sub_apa_
 void SearchParkingSpace::callback_apa(const sensor_msgs::Range::ConstPtr& msg)
 {
-    //ROS_INFO("call callback of apa_rf: range=%f", msg->range);
+    ROS_INFO("call callback of apa_rf: range=%f", msg->range);
     msg_apa_.header.stamp = msg->header.stamp;
     msg_apa_.header.frame_id = msg->header.frame_id;
     msg_apa_.range = msg->range;
@@ -296,7 +297,7 @@ int main(int argc, char **argv)
     {
         if (parking_enable)
         {
-            //ROS_INFO("parking enabled");
+            ROS_INFO("parking enabled");
             if (!trigger_spinner)
             {
                 // clear old callbacks in custom callback queue
@@ -316,7 +317,7 @@ int main(int argc, char **argv)
         }
         else
         {
-            //ROS_INFO("parking disabled");
+            ROS_INFO("parking disabled");
             if (trigger_spinner)
             {
                 // stop spinners for custom callback queue
