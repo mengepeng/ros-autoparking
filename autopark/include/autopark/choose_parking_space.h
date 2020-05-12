@@ -19,6 +19,7 @@
 #include <ros/ros.h>
 #include <ros/spinner.h>
 #include <ros/callback_queue.h>
+#include <std_msgs/Bool.h>
 #include <std_msgs/Float32.h>
 #include <std_msgs/Header.h>
 
@@ -32,8 +33,11 @@ private:
     ros::Subscriber sub_parking_space_lb_;
     ros::Subscriber sub_parking_space_rf_;
     ros::Subscriber sub_parking_space_rb_;
-    ros::Publisher pub_parking_start_;
 
+    ros::Publisher pub_parking_space_;
+    ros::Publisher pub_parking_enable_;
+
+    std_msgs::Bool msg_parking_enable_;
     std_msgs::Float32 msg_car_speed_;
     std_msgs::Header msg_parking_space_;
     std_msgs::Header msg_parking_space_lf_;

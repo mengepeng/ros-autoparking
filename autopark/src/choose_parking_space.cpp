@@ -41,10 +41,12 @@ ChooseParkingSpace::ChooseParkingSpace()
     sub_parking_space_rb_ = nh_.subscribe<std_msgs::Header>("parking_space_rb", 1, \
     &ChooseParkingSpace::callback_parking_space_rb, this);
 
-    pub_parking_start_ = nh_.advertise<std_msgs::Header>("parking_space", 1);
+    pub_parking_space_ = nh_.advertise<std_msgs::Header>("parking_space", 10);
+    pub_parking_enable_ = nh_.advertise<std_msgs::Bool>("parking_enable", 10);
 
     // initialize:
-    msg_parking_space_.seq = 0;            // 0 0 0 0  0 0 0 0
+    msg_parking_space_.seq = 0;             // 0 0 0 0  0 0 0 0
+    msg_parking_enable_.data = false;       // to stop searching parking space
 }
 
 // DESTRUCTOR: called when this object is deleted to release memory 
@@ -179,28 +181,32 @@ void ChooseParkingSpace::choose_parking_space()
     {
         msg_parking_space_.seq = SPACE_RIGHT_PARALLEL;
         msg_parking_space_.stamp = ros::Time::now();
-        pub_parking_start_.publish(msg_parking_space_);
+        pub_parking_space_.publish(msg_parking_space_);
+        pub_parking_enable_.publish(msg_parking_enable_);
     }
     // perpendicular parking space on the right side 
     else if (msg_parking_space_.seq & SPACE_RIGHT_PERPENDICULAR == SPACE_RIGHT_PERPENDICULAR)
     {
         msg_parking_space_.seq = SPACE_RIGHT_PERPENDICULAR;
         msg_parking_space_.stamp = ros::Time::now();
-        pub_parking_start_.publish(msg_parking_space_);
+        pub_parking_space_.publish(msg_parking_space_);
+        pub_parking_enable_.publish(msg_parking_enable_);
     }
     // parallel parking space on the left side
     else if (msg_parking_space_.seq & SPACE_LEFT_PARALLEL == SPACE_LEFT_PARALLEL)
     {
         msg_parking_space_.seq = SPACE_LEFT_PARALLEL;
         msg_parking_space_.stamp = ros::Time::now();
-        pub_parking_start_.publish(msg_parking_space_);
+        pub_parking_space_.publish(msg_parking_space_);
+        pub_parking_enable_.publish(msg_parking_enable_);
     }
     // perpendicular parking space on the left side
     else if (msg_parking_space_.seq & SPACE_LEFT_PERPENDICULAR == SPACE_LEFT_PERPENDICULAR)
     {
         msg_parking_space_.seq = SPACE_LEFT_PERPENDICULAR;
         msg_parking_space_.stamp = ros::Time::now();
-        pub_parking_start_.publish(msg_parking_space_);
+        pub_parking_space_.publish(msg_parking_space_);
+        pub_parking_enable_.publish(msg_parking_enable_);
     }
     else
     {

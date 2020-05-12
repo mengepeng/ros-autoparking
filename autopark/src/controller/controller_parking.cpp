@@ -3,7 +3,8 @@
  * Version: v1.0
  * Author: Meng Peng
  * Date: 2020-04-15
- * Description: publish "start" message to the topic parking_enable
+ * Description: publish message to the topic parking_enable to 
+ * start or stop search parking space
  * 
  ******************************************************************/
 
@@ -18,18 +19,18 @@ int main(int argc, char **argv)
     ros::Publisher pub = nh.advertise<std_msgs::Bool>("parking_enable", 10);
 
     // define message
-    std_msgs::Bool msg_enable;
+    std_msgs::Bool msg_parking_enable;
     // set message
-    msg_enable.data = true;
+    msg_parking_enable.data = true;
 
     while (ros::ok())
     {
         if (pub.getNumSubscribers() > 0)
         {
             // output the published message
-            ROS_INFO("parking enable: %d", msg_enable.data);
+            ROS_INFO("parking enable: %d", msg_parking_enable.data);
             // publish message 
-            pub.publish(msg_enable);
+            pub.publish(msg_parking_enable);
 
             ros::spinOnce();
             // shutdown this node
