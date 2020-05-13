@@ -81,7 +81,6 @@ public:
     void callback_upa_bcr(const sensor_msgs::Range::ConstPtr& msg);
     void callback_upa_br(const sensor_msgs::Range::ConstPtr& msg);
 
-    void check_ranges();
     ~SurroundMonitor();
 };
 
