@@ -1,14 +1,14 @@
 /******************************************************************
- * Filename: search_parking_space.h
+ * Filename: search_parking_space_lf.h
  * Version: v1.0
  * Author: Meng Peng
  * Date: 2020-04-22
- * Description: class for search parking space
+ * Description: class for searching parking space with apa_lf
  * 
  ******************************************************************/
 
-#ifndef SEARCH_PARKING_SPACE_H_
-#define SEARCH_PARKING_SPACE_H_
+#ifndef SEARCH_PARKING_SPACE_LF_H_
+#define SEARCH_PARKING_SPACE_LF_H_
 
 #include <queue>
 #include <vector>
@@ -16,7 +16,6 @@
 #include <algorithm>
 #include <string>
 #include <sstream>
-#include <stdio.h>
 
 #include <ros/ros.h>
 #include <ros/spinner.h>
@@ -28,27 +27,27 @@
 #include <sensor_msgs/Range.h>
 
 
-class SearchParkingSpace
+class SearchParkingSpaceLF
 {
 private:
     ros::NodeHandle nh_;
-    ros::Subscriber sub_apa_;
+    ros::Subscriber sub_apa_lf_;
     ros::Subscriber sub_car_speed_;
     ros::Publisher pub_parking_space_;
 
-    sensor_msgs::Range msg_apa_;
+    sensor_msgs::Range msg_apa_lf_;
     std_msgs::Float32 msg_car_speed_;
     std_msgs::Header msg_parking_space_;
 
-    std::queue<sensor_msgs::Range> que_apa_;
+    std::queue<sensor_msgs::Range> que_apa_lf_;
     std::vector<sensor_msgs::Range> vec_turnpoint_;
 
 public:
-    SearchParkingSpace(ros::NodeHandle* nodehandle);
-    void callback_apa(const sensor_msgs::Range::ConstPtr& msg);
+    SearchParkingSpaceLF(ros::NodeHandle* nodehandle);
+    void callback_apa_lf(const sensor_msgs::Range::ConstPtr& msg);
     void callback_car_speed(const std_msgs::Float32::ConstPtr& msg);
     void check_parking_space();
-    ~SearchParkingSpace();
+    ~SearchParkingSpaceLF();
 };
 
 #endif

@@ -8,7 +8,7 @@
  ******************************************************************/
 
 #include "autopark/autoparking.h"
-#include "autopark/search_parking_space.h"
+#include "autopark/search_parking_space_rf.h"
 
 using namespace std;
 
@@ -39,30 +39,28 @@ void callback_parking_enable(const std_msgs::Bool::ConstPtr& msg)
 
 
 // CONSTRUCTOR: called when this object is created to set up subscribers and publishers
-SearchParkingSpace::SearchParkingSpace(ros::NodeHandle* nodehandle):nh_(*nodehandle)
+SearchParkingSpaceRF::SearchParkingSpaceRF(ros::NodeHandle* nodehandle):nh_(*nodehandle)
 {
     ROS_INFO("call constructor in search_parking_space_rf");
 
-    sub_apa_ = nh_.subscribe<sensor_msgs::Range>("apa_rf", 1, \
-    &SearchParkingSpace::callback_apa, this);
+    sub_apa_rf_ = nh_.subscribe<sensor_msgs::Range>("apa_rf", 1, \
+    &SearchParkingSpaceRF::callback_apa_rf, this);
 
     sub_car_speed_ = nh_.subscribe<std_msgs::Float32>("car_speed", 1, \
-    &SearchParkingSpace::callback_car_speed, this);
+    &SearchParkingSpaceRF::callback_car_speed, this);
 
     pub_parking_space_ = nh_.advertise<std_msgs::Header>("parking_space_rf", 1);
-
-    msg_parking_space_.seq = 0;    // initialize: 0 0 0 0  0 0 0 0
 }
 
 // DESTRUCTOR: called when this object is deleted to release memory 
-SearchParkingSpace::~SearchParkingSpace(void)
+SearchParkingSpaceRF::~SearchParkingSpaceRF(void)
 {
     ROS_INFO("call destructor in search_parking_space_rf");
 }
 
 // callbacks from custom callback queue
 // callback of sub_car_speed_
-void SearchParkingSpace::callback_car_speed(const std_msgs::Float32::ConstPtr& msg)
+void SearchParkingSpaceRF::callback_car_speed(const std_msgs::Float32::ConstPtr& msg)
 {
     ROS_INFO("call callback of car_speed: speed=%f", msg->data);
     msg_car_speed_.data = msg->data;
@@ -99,34 +97,34 @@ void SearchParkingSpace::callback_car_speed(const std_msgs::Float32::ConstPtr& m
     }
 }
 
-// callback of sub_apa_
-void SearchParkingSpace::callback_apa(const sensor_msgs::Range::ConstPtr& msg)
+// callback of sub_apa_rf_
+void SearchParkingSpaceRF::callback_apa_rf(const sensor_msgs::Range::ConstPtr& msg)
 {
     ROS_INFO("call callback of apa_rf: range=%f", msg->range);
-    msg_apa_.header.stamp = msg->header.stamp;
-    msg_apa_.header.frame_id = msg->header.frame_id;
-    msg_apa_.range = msg->range;
+    msg_apa_rf_.header.stamp = msg->header.stamp;
+    msg_apa_rf_.header.frame_id = msg->header.frame_id;
+    msg_apa_rf_.range = msg->range;
 
     trigger_check = true;  // to start check function
 }
 
 // check function to find parking space
-void SearchParkingSpace::check_parking_space()
+void SearchParkingSpaceRF::check_parking_space()
 {
     ROS_INFO("call check function in search_parking_space_rf");
-    if (que_apa_.empty())
+    if (que_apa_rf_.empty())
     {
         //detected object in the range of distance_search
-        if (msg_apa_.range < distance_search)
+        if (msg_apa_rf_.range < distance_search)
         {
-            // add first valid range message to que_apa_
-            que_apa_.push(msg_apa_);
+            // add first valid range message to que_apa_rf_
+            que_apa_rf_.push(msg_apa_rf_);
         }
     }
     else
     {
-        // add new message to que_apa_
-        que_apa_.push(msg_apa_);
+        // add new message to que_apa_rf_
+        que_apa_rf_.push(msg_apa_rf_);
 
         // number of turn points in vec_turnpoint_
         static uint16_t size_vec_turnpoint = vec_turnpoint_.size();
@@ -134,42 +132,42 @@ void SearchParkingSpace::check_parking_space()
         {
         case 0:     // no turn point in vec_turnpoint_
             // range increase: close to parking space (parking gap)
-            if ((que_apa_.back().range - que_apa_.front().range) > range_diff)
+            if ((que_apa_rf_.back().range - que_apa_rf_.front().range) > range_diff)
             {
                 // do nothing
             }
             // range decrease: away from parking space (parking gap)
-            else if ((que_apa_.front().range - que_apa_.back().range) > range_diff)
+            else if ((que_apa_rf_.front().range - que_apa_rf_.back().range) > range_diff)
             {
-                vec_turnpoint_.push_back(que_apa_.back());  // first turn point
-                distance_min = que_apa_.back().range;
+                vec_turnpoint_.push_back(que_apa_rf_.back());  // first turn point
+                distance_min = que_apa_rf_.back().range;
             }
             // range is stable
             else
             {
-                vec_turnpoint_.push_back(que_apa_.front());   // first turn point
-                distance_min = que_apa_.front().range;
+                vec_turnpoint_.push_back(que_apa_rf_.front());   // first turn point
+                distance_min = que_apa_rf_.front().range;
             }
             break;
 
         case 1:     // one turn point in vec_turnpoint_
             // range increase: close to parking space (parking gap)
-            if ((que_apa_.back().range - que_apa_.front().range) > range_diff)
+            if ((que_apa_rf_.back().range - que_apa_rf_.front().range) > range_diff)
             {
-                vec_turnpoint_.push_back(que_apa_.front());    // second turn point
+                vec_turnpoint_.push_back(que_apa_rf_.front());    // second turn point
             }
             // range decrease: away from parking space (parking gap)
-            else if ((que_apa_.front().range - que_apa_.back().range) > range_diff)
+            else if ((que_apa_rf_.front().range - que_apa_rf_.back().range) > range_diff)
             {
                 vec_turnpoint_.pop_back();      // delete the added first turn point
-                vec_turnpoint_.push_back(que_apa_.back());  // add the new first turn point
-                distance_min = que_apa_.back().range;
+                vec_turnpoint_.push_back(que_apa_rf_.back());  // add the new first turn point
+                distance_min = que_apa_rf_.back().range;
             }
             else
             {
-                if (que_apa_.back().range < distance_min)
+                if (que_apa_rf_.back().range < distance_min)
                 {
-                    distance_min = que_apa_.back().range;  // get new distance_min
+                    distance_min = que_apa_rf_.back().range;  // get new distance_min
                 }
             }
             break;
@@ -201,28 +199,28 @@ void SearchParkingSpace::check_parking_space()
             }
 
             // range increase: close to parking space (parking gap)
-            if ((que_apa_.back().range - que_apa_.front().range) > range_diff)
+            if ((que_apa_rf_.back().range - que_apa_rf_.front().range) > range_diff)
             {
                 // do nothing
             }
             // range decrease: away from parking space (parking gap)
-            else if ((que_apa_.front().range - que_apa_.back().range) > range_diff)
+            else if ((que_apa_rf_.front().range - que_apa_rf_.back().range) > range_diff)
             {
-                vec_turnpoint_.push_back(que_apa_.front());    // third key point
-                vec_turnpoint_.push_back(que_apa_.front());    // fourth key point
+                vec_turnpoint_.push_back(que_apa_rf_.front());    // third key point
+                vec_turnpoint_.push_back(que_apa_rf_.front());    // fourth key point
             }
             // range is stable
             else
             {
-                vec_turnpoint_.push_back(que_apa_.front());   // third turn point
+                vec_turnpoint_.push_back(que_apa_rf_.front());   // third turn point
             }
             break;
 
         case 3:     // three turn points in vec_turnpoint_
             // range decrease: away from parking space (parking gap)
-            if ((que_apa_.front().range - que_apa_.back().range) > range_diff)
+            if ((que_apa_rf_.front().range - que_apa_rf_.back().range) > range_diff)
             {
-                vec_turnpoint_.push_back(que_apa_.front());     // fourth turn point
+                vec_turnpoint_.push_back(que_apa_rf_.front());     // fourth turn point
             }
             /* the only way to find the fourth turn point */
             else
@@ -233,19 +231,19 @@ void SearchParkingSpace::check_parking_space()
 
         case 4:     // four turn points in vec_turnpoint_
             // range increase: close to parking space (parking gap)
-            if ((que_apa_.back().range - que_apa_.front().range) > range_diff)
+            if ((que_apa_rf_.back().range - que_apa_rf_.front().range) > range_diff)
             {
                 // do nothing
             }
             // range decrease: away from parking space (parking gap)
-            else if ((que_apa_.front().range - que_apa_.back().range) > range_diff)
+            else if ((que_apa_rf_.front().range - que_apa_rf_.back().range) > range_diff)
             {
                 // do nothing
             }
             // range is stable
             else
             {
-                vec_turnpoint_.push_back(que_apa_.front());     // fifth turn point
+                vec_turnpoint_.push_back(que_apa_rf_.front());     // fifth turn point
             }
             /* the only way to find the fifth turn point */
             break;
@@ -296,8 +294,8 @@ void SearchParkingSpace::check_parking_space()
                 clrbit(msg_parking_space_.seq, 2);     // 0 0 0 0  0 0 x x
             }
 
-            // delete fist message in que_apa_
-            que_apa_.pop();
+            // delete fist message in que_apa_rf_
+            que_apa_rf_.pop();
             // clear all messages in vec_turnpoint_
             vec_turnpoint_.clear();
             break;
@@ -306,8 +304,8 @@ void SearchParkingSpace::check_parking_space()
             break;
         }
 
-        if(!(que_apa_.empty()))
-            que_apa_.pop();     // delete first message in to keep queue_size less than 2
+        if(!(que_apa_rf_.empty()))
+            que_apa_rf_.pop();     // delete first message in to keep queue_size less than 2
     }
 
     trigger_check = false;   // to stop check function and wait for next trigger
@@ -330,8 +328,8 @@ int main(int argc, char **argv)
     ros::Subscriber sub_parking_enable = nh.subscribe<std_msgs::Bool>("parking_enable", 1, \
     callback_parking_enable);
 
-    // instantiating an object of class SearchParkingSpace
-    SearchParkingSpace searchParkingSpace_rf(&nh_c);  // pass nh_c to class constructor
+    // instantiating an object of class SearchParkingSpaceRF
+    SearchParkingSpaceRF SearchParkingSpaceRF_rf(&nh_c);  // pass nh_c to class constructor
 
     // create AsyncSpinner, run it on all available cores to process custom callback queue
     sp_spinner.reset(new ros::AsyncSpinner(0, &callback_queue));
@@ -364,7 +362,7 @@ int main(int argc, char **argv)
             if (trigger_check)
             {
                 // check new apa message to find parking space
-                searchParkingSpace_rf.check_parking_space();
+                SearchParkingSpaceRF_rf.check_parking_space();
             }
         }
         else

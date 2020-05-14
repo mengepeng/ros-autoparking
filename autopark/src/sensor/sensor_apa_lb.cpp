@@ -29,7 +29,7 @@ int main(int argc, char **argv)
     msg_apa_lb.min_range = 0.2;
     msg_apa_lb.max_range = 7;
 
-    ros::Rate loop_rate(20);
+    ros::Rate loop_rate(50);
     while (nh.ok())
     {
         // set current values

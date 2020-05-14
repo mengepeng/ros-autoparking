@@ -29,12 +29,12 @@ int main(int argc, char **argv)
     msg_apa_rf.min_range = 0.2;
     msg_apa_rf.max_range = 7;
 
-    ros::Rate loop_rate(20);
+    ros::Rate loop_rate(50);
     while (nh.ok())
     {
         // set current values
         msg_apa_rf.header.stamp = ros::Time::now();
-        msg_apa_rf.range = 1;   // fake
+        msg_apa_rf.range = 4;   // fake
 
         // output range of published message
         ROS_INFO("apa_rf: range = %f", msg_apa_rf.range);

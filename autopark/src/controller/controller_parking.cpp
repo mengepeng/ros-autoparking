@@ -16,7 +16,8 @@ int main(int argc, char **argv)
 {
     ros::init(argc, argv, "controller_parking");
     ros::NodeHandle nh;
-    ros::Publisher pub = nh.advertise<std_msgs::Bool>("parking_enable", 10);
+    ros::Publisher pub = nh.advertise<std_msgs::Bool>("parking_enable", 1);
+    ros::Duration(1).sleep();   // wait 1 second for creating communication
 
     // define message
     std_msgs::Bool msg_parking_enable;
@@ -33,8 +34,9 @@ int main(int argc, char **argv)
             pub.publish(msg_parking_enable);
 
             ros::spinOnce();
-            // shutdown this node
-            ros::shutdown();    // this node only run once at begin
+
+            // close this node
+            ros::shutdown();    // this node run only once at the beginning
         }
     }
 

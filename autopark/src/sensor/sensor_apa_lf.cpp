@@ -29,12 +29,12 @@ int main(int argc, char **argv)
     msg_apa_lf.min_range = 0.2;
     msg_apa_lf.max_range = 7;
 
-    ros::Rate loop_rate(20);
+    ros::Rate loop_rate(50);
     while (nh.ok())
     {
         // set curret values
         msg_apa_lf.header.stamp = ros::Time::now();
-        msg_apa_lf.range = 1;   // fake
+        msg_apa_lf.range = 2;   // fake
 
         // output range of published message
         ROS_INFO("apa_lf: range = %f", msg_apa_lf.range);
