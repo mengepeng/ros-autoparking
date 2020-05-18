@@ -130,7 +130,7 @@ add_dependencies(autoparking ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORT
 
 
 add_executable(controller_parking src/controller/controller_parking.cpp)
-target_link_libraries(controller_parking ${catkin_LIBRARIES})
+target_link_libraries(controller_parking autoparking ${catkin_LIBRARIES})
 
 add_executable(controller_move src/controller/controller_move.cpp)
 target_link_libraries(controller_move ${catkin_LIBRARIES})
