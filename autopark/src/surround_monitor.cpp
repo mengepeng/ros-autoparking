@@ -85,7 +85,7 @@ void SurroundMonitor::callback_apa_lf(const sensor_msgs::Range::ConstPtr& msg)
     msg_apa_lf_.header.frame_id = msg->header.frame_id;
     msg_apa_lf_.range = msg->range;
 
-    if (msg_apa_lf_.range < brake_distance_s)
+    if (msg_apa_lf_.range < brake_distance_side)
     {
         msg_cmd_move_.data = "stop";
         pub_motor_.publish(msg_cmd_move_);
@@ -100,7 +100,7 @@ void SurroundMonitor::callback_apa_lb(const sensor_msgs::Range::ConstPtr& msg)
     msg_apa_lb_.header.frame_id = msg->header.frame_id;
     msg_apa_lb_.range = msg->range;
 
-    if (msg_apa_lb_.range < brake_distance_s)
+    if (msg_apa_lb_.range < brake_distance_side)
     {
         msg_cmd_move_.data = "stop";
         pub_motor_.publish(msg_cmd_move_);
@@ -115,7 +115,7 @@ void SurroundMonitor::callback_apa_rf(const sensor_msgs::Range::ConstPtr& msg)
     msg_apa_rf_.header.frame_id = msg->header.frame_id;
     msg_apa_rf_.range = msg->range;
 
-    if (msg_apa_rf_.range < brake_distance_s)
+    if (msg_apa_rf_.range < brake_distance_side)
     {
         msg_cmd_move_.data = "stop";
         pub_motor_.publish(msg_cmd_move_);
@@ -130,7 +130,7 @@ void SurroundMonitor::callback_apa_rb(const sensor_msgs::Range::ConstPtr& msg)
     msg_apa_rb_.header.frame_id = msg->header.frame_id;
     msg_apa_rb_.range = msg->range;
 
-    if (msg_apa_rb_.range < brake_distance_s)
+    if (msg_apa_rb_.range < brake_distance_side)
     {
         msg_cmd_move_.data = "stop";
         pub_motor_.publish(msg_cmd_move_);
