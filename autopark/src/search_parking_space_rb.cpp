@@ -347,7 +347,7 @@ int main(int argc, char **argv)
     {
         if (parking_enable)
         {
-            ROS_INFO("parking enabled");
+            ROS_INFO_STREAM_ONCE("search parking space enabled");
             if (!trigger_spinner)
             {
                 // clear old callbacks in custom callback queue
@@ -367,7 +367,7 @@ int main(int argc, char **argv)
         }
         else
         {
-            ROS_INFO("parking disabled");
+            ROS_INFO_STREAM_ONCE("search parking space disabled");
             if (trigger_spinner)
             {
                 // stop spinners for custom callback queue
