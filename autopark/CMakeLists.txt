@@ -132,11 +132,11 @@ add_dependencies(autoparking ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORT
 add_executable(controller_parking src/controller/controller_parking.cpp)
 target_link_libraries(controller_parking ${catkin_LIBRARIES})
 
-add_executable(controller_motor src/controller/controller_motor.cpp)
-target_link_libraries(controller_motor ${catkin_LIBRARIES})
+add_executable(controller_move src/controller/controller_move.cpp)
+target_link_libraries(controller_move ${catkin_LIBRARIES})
 
-add_executable(controller_steering src/controller/controller_steering.cpp)
-target_link_libraries(controller_steering ${catkin_LIBRARIES})
+add_executable(controller_turn src/controller/controller_turn.cpp)
+target_link_libraries(controller_turn ${catkin_LIBRARIES})
 
 add_executable(sensor_encoder src/sensor/sensor_encoder.cpp)
 target_link_libraries(sensor_encoder ${catkin_LIBRARIES})
