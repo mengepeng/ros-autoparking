@@ -27,19 +27,27 @@
 #define SPACE_RIGHT_PARALLEL        0x06    // 0 0 0 0  0 1 1 0
 #define SPACE_RIGHT_PERPENDICULAR   0x05    // 0 0 0 0  0 1 0 1
 
+extern const float range_diff;                  // [m] range difference to distinguish turn point 
+extern const float distance_search;             // [m] maximum distance between car and parking space
+extern const float parallel_width;              // [m] minimum width of parallel parking space
+extern const float parallel_length;             // [m] minimum length of parallel parking space
+extern const float perpendicular_width;         // [m] minimum width of perpendicular parking space
+extern const float perpendicular_length;        // [m] minimum length of perpendicular parking space
+extern const float car_width;                   // [m] minimum width of car
+extern const float car_length;                  // [m] minimum length of car
+extern const float distance_apa;                // [m] distance between two apas at front and back
+extern const float apa_width;                   // [m] lateral range of apa
 
-extern const float range_diff;              // range difference to distinguish turn point 
-extern const float distance_search;         // maximum distance between car and parking space
-extern const float parallel_width;          // minimum width of parallel parking space
-extern const float parallel_length;         // minimum length of parallel parking space
-extern const float perpendicular_width;     // minimum width of perpendicular parking space
-extern const float perpendicular_length;    // minimum length of perpendicular parking space
-extern const float car_width;               // minimum width of car
-extern const float car_length;              // minimum length of car
-extern const float distance_apa;            // distance between two apas at front and back
-extern const float apa_width;               // lateral range of apa
+extern const float brake_distance_side;         // [m] minimum distance between car and object on both sides
+extern const float parking_distance;            // [m] minimum distance between car and object when park in
+extern const float move_distance_perpendicular; // [m] move distance before perpendicular parking in
 
-extern const float brake_distance_s;        // minimum distance between car and object on both sides
-extern const float parking_distance;        // minimum distance between car and object when park in
+extern const float speed_search_parking;        // [m/s] car speed when search parking space
+extern const float speed_parking_forward;       // [m/s] car speed when move forward for parking
+extern const float speed_parking_backward;      // [m/s] car speed when move backward for parking
+
+extern const float angle_straight;              // [°] angle for straight move
+extern const float angle_left;                  // [°] maximum angle for turn left
+extern const float angle_right;                 // [°] maximum angle for turn right
 
 #endif
