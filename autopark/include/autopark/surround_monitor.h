@@ -31,10 +31,6 @@ class SurroundMonitor
 private:
     ros::NodeHandle nh_;
     ros::Subscriber sub_car_speed_;
-    ros::Subscriber sub_apa_lf_;
-    ros::Subscriber sub_apa_lb_;
-    ros::Subscriber sub_apa_rf_;
-    ros::Subscriber sub_apa_rb_;
     ros::Subscriber sub_upa_fl_;
     ros::Subscriber sub_upa_fcl_;
     ros::Subscriber sub_upa_fcr_;
@@ -44,14 +40,11 @@ private:
     ros::Subscriber sub_upa_bcr_;
     ros::Subscriber sub_upa_br_;
 
-    ros::Publisher pub_motor_;
+    ros::Publisher pub_move_;
+    ros::Publisher pub_forward_;
+    ros::Publisher pub_backward_;
 
-    float brake_distance;
     std_msgs::Float32 msg_car_speed_;
-    sensor_msgs::Range msg_apa_lf_;
-    sensor_msgs::Range msg_apa_lb_;
-    sensor_msgs::Range msg_apa_rf_;
-    sensor_msgs::Range msg_apa_rb_;
     sensor_msgs::Range msg_upa_fl_;
     sensor_msgs::Range msg_upa_fcl_;
     sensor_msgs::Range msg_upa_fcr_;
@@ -60,16 +53,14 @@ private:
     sensor_msgs::Range msg_upa_bcl_;
     sensor_msgs::Range msg_upa_bcr_;
     sensor_msgs::Range msg_upa_br_;
-    std_msgs::String msg_cmd_move_;
+
+    std_msgs::Float32 msg_cmd_move_;
+    std_msgs::Bool msg_cmd_forward_;
+    std_msgs::Bool msg_cmd_backward_;
 
 public:
     SurroundMonitor();
     void callback_car_speed(const std_msgs::Float32::ConstPtr& msg);
-
-    void callback_apa_lf(const sensor_msgs::Range::ConstPtr& msg);
-    void callback_apa_lb(const sensor_msgs::Range::ConstPtr& msg);
-    void callback_apa_rf(const sensor_msgs::Range::ConstPtr& msg);
-    void callback_apa_rb(const sensor_msgs::Range::ConstPtr& msg);
 
     void callback_upa_fl(const sensor_msgs::Range::ConstPtr& msg);
     void callback_upa_fcl(const sensor_msgs::Range::ConstPtr& msg);
@@ -80,6 +71,8 @@ public:
     void callback_upa_bcl(const sensor_msgs::Range::ConstPtr& msg);
     void callback_upa_bcr(const sensor_msgs::Range::ConstPtr& msg);
     void callback_upa_br(const sensor_msgs::Range::ConstPtr& msg);
+
+    void check_signals();
 
     ~SurroundMonitor();
 };
