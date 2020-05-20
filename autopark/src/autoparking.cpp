@@ -20,7 +20,7 @@ const float car_length = 4.8;                   // [m] minimum length of car
 const float distance_apa = 4;                   // [m] distance between two apas at front and back of car
 const float apa_width = 0.5;                    // [m] lateral range of apa
 
-const float brake_distance_side = 0.2;          // [m] minimum distance between car and object on both sides
+const float brake_distance_default = 0.3;       // [m] default brake distance
 const float parking_distance = 0.4;             // [m] minimum distance between car and object when park in
 const float move_distance_perpendicular = 1.5;  //[m] move distance before perpendicular parking in
 
