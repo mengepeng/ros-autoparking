@@ -18,7 +18,7 @@ int main(int argc, char **argv)
     ros::init(argc, argv, "controller_parking");
     ros::NodeHandle nh;
     ros::Publisher pub_enable = nh.advertise<std_msgs::Bool>("parking_enable", 1);
-    ros::Publisher pub_move = nh.advertise<std_msgs::Bool>("cmd_move", 1);
+    ros::Publisher pub_move = nh.advertise<std_msgs::Float32>("cmd_move", 1);
 
     ros::Duration(1).sleep();   // wait 1 second for creating communication
 

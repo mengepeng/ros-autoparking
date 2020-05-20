@@ -10,16 +10,18 @@
 #include <ros/ros.h>
 #include <std_msgs/Float32.h>
 
+using namespace std;
+
 // global variable to update message of topic cmd_turn
-float turn_angle;
+static float turn_angle;
 
 // steering control function
-void do_turn(float angle)
+void do_turn()
 {
     /*control program
-    * angle = 0: turn straight
-    * angle > 0: turn left
-    * angle < 0: turn right
+    * turn_angle = 0: turn straight
+    * turn_angle > 0: turn left
+    * turn_angle < 0: turn right
     */
 }
 
@@ -29,7 +31,7 @@ void callback_cmd_turn(const std_msgs::Float32::ConstPtr& msg)
     ROS_INFO("turn_angle: %f", msg->data);
     turn_angle = msg->data;
 
-    do_turn(turn_angle);
+    do_turn();
 }
 
 
@@ -39,14 +41,8 @@ int main(int argc, char **argv)
     ros::NodeHandle nh;
     ros::Subscriber sub = nh.subscribe<std_msgs::Float32>("cmd_turn", 1, callback_cmd_turn);
 
-    // set loop rate 10 Hz
-    ros::Rate loop_rate(10);
-    while (ros::ok())
-    {
-        ros::spinOnce();
-
-        loop_rate.sleep();
-    }
+    // process callbacks in loop
+    ros::spin();
 
     return 0;
 }
