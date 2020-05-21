@@ -8,7 +8,6 @@
  ******************************************************************/
 
 #include <ros/ros.h>
-#include <std_msgs/String.h>
 #include <sensor_msgs/Range.h>
 
 int main(int argc, char **argv)
@@ -30,7 +29,7 @@ int main(int argc, char **argv)
 
     // set loop iteration frequence
     ros::Rate loop_rate(50);
-    while (nh.ok())
+    while (ros::ok())
     {
         // set current values
         msg_upa_fcr.header.stamp = ros::Time::now();

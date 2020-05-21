@@ -8,7 +8,6 @@
  ******************************************************************/
 
 #include <ros/ros.h>
-#include <std_msgs/String.h>
 #include <sensor_msgs/Range.h>
 
 int main(int argc, char **argv)
@@ -30,7 +29,7 @@ int main(int argc, char **argv)
     msg_apa_lb.max_range = 7;
 
     ros::Rate loop_rate(50);
-    while (nh.ok())
+    while (ros::ok())
     {
         // set current values
         msg_apa_lb.header.stamp = ros::Time::now();

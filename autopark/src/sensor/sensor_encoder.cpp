@@ -21,8 +21,9 @@ int main(int argc, char **argv)
     //set message data
     flt_msg.data = 5;   // 5 m/s = 18 km/h
 
+    // set loop rate 100 Hz, this rate should not smaller than publish rate of upas
     ros::Rate loop_rate(100);
-    while (nh.ok())
+    while (ros::ok())
     {
         // output the published message
         ROS_INFO("car speed: %f m/s", flt_msg.data);
