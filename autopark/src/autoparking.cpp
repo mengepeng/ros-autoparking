@@ -27,7 +27,3 @@ const float move_distance_perpendicular = 1.5;  //[m] move distance before perpe
 const float speed_search_parking = 5;           // [m/s] car speed when search parking space
 const float speed_parking_forward = 2;          // [m/s] car speed when move forward for parking
 const float speed_parking_backward = -2;        // [m/s] car speed when move backward for parking
-
-const float angle_straight = 0;                 // [°] angle for straight move
-const float angle_left = 35;                    // [°] maximum angle for turn left
-const float angle_right = -35;                  // [°] maximum angle for turn right

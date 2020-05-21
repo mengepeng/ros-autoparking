@@ -10,10 +10,14 @@
 #ifndef AUTOPARKING_H_
 #define AUTOPARKING_H_
 
+#include <stdint.h>
+
+volatile uint32_t parking_space;            // global variable for parking space
+
 #define setbit(x, y) x|=(1<<y)
 #define clrbit(x, y) x&=~(1<<y)
 //  x   x   x   x     x   x   x   x
-// high four bits for left side, low four bits for left side
+// 7~4 bits for left side, 3~0 bits for right side
 // 7 bit: not used
 // 6 bit: parking space on the left side
 // 5 bit: parking type is parallel parking
@@ -26,6 +30,7 @@
 #define SPACE_LEFT_PERPENDICULAR    0x80    // 0 1 0 1  0 0 0 0
 #define SPACE_RIGHT_PARALLEL        0x06    // 0 0 0 0  0 1 1 0
 #define SPACE_RIGHT_PERPENDICULAR   0x05    // 0 0 0 0  0 1 0 1
+
 
 extern const float range_diff;                  // [m] range difference to distinguish turn point 
 extern const float distance_search;             // [m] maximum distance between car and parking space
@@ -45,9 +50,5 @@ extern const float move_distance_perpendicular; // [m] move distance before perp
 extern const float speed_search_parking;        // [m/s] car speed when search parking space
 extern const float speed_parking_forward;       // [m/s] car speed when move forward for parking
 extern const float speed_parking_backward;      // [m/s] car speed when move backward for parking
-
-extern const float angle_straight;              // [°] angle for straight move
-extern const float angle_left;                  // [°] maximum angle for turn left
-extern const float angle_right;                 // [°] maximum angle for turn right
 
 #endif

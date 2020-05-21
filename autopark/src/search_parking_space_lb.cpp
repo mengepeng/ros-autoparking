@@ -184,14 +184,14 @@ void SearchParkingSpaceLB::check_parking_space()
             if (obj_length < perpendicular_width && obj_length > car_width)
             {
                 // perpendicular parking: 0 0 0 1  0 0 0 0
-                setbit(msg_parking_space_.seq, 4);
-                clrbit(msg_parking_space_.seq, 5);
+                setbit(parking_space, 4);
+                clrbit(parking_space, 5);
             }
             else if (obj_length < parallel_width && obj_length > car_length)
             {
                 // parallel parking: 0 0 1 0  0 0 0 0
-                setbit(msg_parking_space_.seq, 5);
-                clrbit(msg_parking_space_.seq, 4);
+                setbit(parking_space, 5);
+                clrbit(parking_space, 4);
             }
             else
             {
@@ -265,7 +265,7 @@ void SearchParkingSpaceLB::check_parking_space()
             (space_width > parallel_width && space_length > parallel_length))
             {
                 // parking space on the left side
-                setbit(msg_parking_space_.seq, 6);     // 0 1 x x  0 0 0 0
+                setbit(parking_space, 6);     // 0 1 x x  0 0 0 0
                 // 0 1 0 1  0 0 0 0: perpendicular parking on the left side
                 // 0 1 1 0  0 0 0 0: parallel parking space on the left side
                 // else: not a valid parking space
@@ -275,23 +275,25 @@ void SearchParkingSpaceLB::check_parking_space()
                 if (space_width < parallel_width)
                 {
                     // perpendicular parking: 0 0 0 1  0 0 0 0
-                    setbit(msg_parking_space_.seq, 4);
-                    clrbit(msg_parking_space_.seq, 5);
+                    setbit(parking_space, 4);
+                    clrbit(parking_space, 5);
                 }
                 // parallel parking space
                 if (space_length < perpendicular_length)
                 {
                     // parallel parking: 0 0 1 0  0 0 0 0
-                    setbit(msg_parking_space_.seq, 5);
-                    clrbit(msg_parking_space_.seq, 4);
+                    setbit(parking_space, 5);
+                    clrbit(parking_space, 4);
                 }
 
+                // set msg_parking_space_.seq
+                msg_parking_space_.seq = parking_space;
                 // set time stamp
                 msg_parking_space_.stamp = ros::Time::now();
                 // publish parking space
                 pub_parking_space_.publish(msg_parking_space_);
                 // reset parking space state
-                clrbit(msg_parking_space_.seq, 6);     // 0 0 x x  0 0 0 0
+                clrbit(parking_space, 6);     // 0 0 x x  0 0 0 0
             }
 
             // delete fist message in que_apa_lb_
