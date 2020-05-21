@@ -147,11 +147,17 @@ target_link_libraries(sensor_apa_lf ${catkin_LIBRARIES})
 add_executable(sensor_apa_lb src/sensor/sensor_apa_lb.cpp)
 target_link_libraries(sensor_apa_lb ${catkin_LIBRARIES})
 
+add_executable(sensor_apa_lb2 src/sensor/sensor_apa_lb2.cpp)
+target_link_libraries(sensor_apa_lb2 ${catkin_LIBRARIES})
+
 add_executable(sensor_apa_rf src/sensor/sensor_apa_rf.cpp)
 target_link_libraries(sensor_apa_rf ${catkin_LIBRARIES})
 
 add_executable(sensor_apa_rb src/sensor/sensor_apa_rb.cpp)
 target_link_libraries(sensor_apa_rb ${catkin_LIBRARIES})
+
+add_executable(sensor_apa_rb2 src/sensor/sensor_apa_rb2.cpp)
+target_link_libraries(sensor_apa_rb2 ${catkin_LIBRARIES})
 
 add_executable(sensor_upa_fl src/sensor/sensor_upa_fl.cpp)
 target_link_libraries(sensor_upa_fl ${catkin_LIBRARIES})
