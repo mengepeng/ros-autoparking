@@ -19,11 +19,15 @@ const float car_width = 1.8;                    // [m] minimum width of car
 const float car_length = 4.8;                   // [m] minimum length of car
 const float distance_apa = 4;                   // [m] distance between two apas at front and back of car
 const float apa_width = 0.5;                    // [m] lateral range of apa
+const float apa_tolerance = 0.02;               // [m] measuring tolerance of apa 
 
 const float brake_distance_default = 0.3;       // [m] default brake distance
-const float parking_distance = 0.4;             // [m] minimum distance between car and object when park in
-const float move_distance_perpendicular = 1.5;  //[m] move distance before perpendicular parking in
+const float move_distance_perpendicular = 1.5;  // [m] move distance before perpendicular parking in
+const float parking_distance_min = 0.4;         // [m] minimum distance between car and parkwall (car)
+const float parking_distance_max = 1.2;         // [m] maximum distance between car and parkwall (car)
 
 const float speed_search_parking = 5;           // [m/s] car speed when search parking space
 const float speed_parking_forward = 2;          // [m/s] car speed when move forward for parking
 const float speed_parking_backward = -2;        // [m/s] car speed when move backward for parking
+
+const float parking_time = 60;                  // [s] total time for parking
