@@ -17,8 +17,8 @@ static uint32_t choosed_parking_space = 0;  // choosed parking space
 static bool trigger_check = false;          // flag to enable check function 
 static bool trigger_spinner = false;        // flag to enable spinners
 
-static bool parking_succeed = false;        // flag of parking succeed
-static bool parking_failed = false;         // flag of parking failed
+static bool parking_finished = false;        // flag of parking finished
+static bool time_out = false;               // flag of time out
 
 boost::shared_ptr<ros::AsyncSpinner> sp_spinner;   // create a shared_ptr for AsyncSpinner object
 
@@ -103,18 +103,13 @@ void ParkingIn::callback_car_speed(const std_msgs::Float32::ConstPtr& msg)
     msg_car_speed_.data = msg->data;
 }
 
+// callback of timer: parking should be finished in a certain time
 void ParkingIn::callback_timer(const ros::WallTimerEvent& event)
 {
-    ROS_INFO("out of time: parking failed");
+    ROS_INFO("timer of %f[s] is triggered", parking_time);
 
-    if (!parking_succeed)
-    {
-        parking_failed = true;      // parking failed!
-    }
-
-    // should do sth later, e.g.: move back to the street and go on searching parking space
+    time_out = true;
 }
-
 
 // callback of sub_apa_lf_
 void ParkingIn::callback_apa_lf(const sensor_msgs::Range::ConstPtr& msg)
@@ -268,19 +263,23 @@ void ParkingIn::move_before_parking(float move_distance)
     pub_move_.publish(msg_cmd_move_);
 }
 
+
 // *****************************************************
 // function of perpendicular parking on the left side
 // *****************************************************
 void ParkingIn::perpendicular_parking_left()
 {
-    static bool in_parking_space = false;   // flag of car rear getting in parking space
+    static bool straight_state = false;   // flag of straight state of car
 
+    // stop
+    msg_cmd_move_.data = 0;
+    pub_move_.publish(msg_cmd_move_);
     // turn full left
     msg_cmd_turn_.data = 'L';
     pub_turn_.publish(msg_cmd_turn_);
 
     // check and change posture when car moves backward until parking is finished 
-    while (!parking_succeed)
+    while (!parking_finished)
     {
         // move backward with speed_parking_backward
         msg_cmd_move_.data = speed_parking_backward;
@@ -289,7 +288,14 @@ void ParkingIn::perpendicular_parking_left()
         // car rear is already in parking space
         if (msg_apa_lb_.range < parking_distance_max && msg_apa_rb_.range < parking_distance_max)
         {
-            in_parking_space = true;
+            // car is not ready for straight moving and 
+            // not too close to the parkwall (car) on the left side
+            if (!straight_state && msg_apa_lb_.range > parking_distance_min)
+            {
+                // keep turnning full left
+                msg_cmd_turn_.data = 'L';
+                pub_turn_.publish(msg_cmd_turn_);
+            }
 
             // car parallel to the left parkwall (car)
             if ((msg_apa_lb_.range - msg_apa_lb2_.range) < apa_tolerance)
@@ -297,6 +303,9 @@ void ParkingIn::perpendicular_parking_left()
                 // turn straight
                 msg_cmd_turn_.data = 'D';
                 pub_turn_.publish(msg_cmd_turn_);
+
+                // ready for straight moving
+                straight_state = true;
             }
 
             // car rear is too close to the left parkwall
@@ -323,6 +332,8 @@ void ParkingIn::perpendicular_parking_left()
                         break;
                     }
                 }
+                // ready for straight moving
+                straight_state = true;
                 // stop
                 msg_cmd_move_.data = 0;
                 pub_move_.publish(msg_cmd_move_);
@@ -358,6 +369,8 @@ void ParkingIn::perpendicular_parking_left()
                         break;
                     }
                 }
+                // ready for straight moving
+                straight_state = true;
                 // stop
                 msg_cmd_move_.data = 0;
                 pub_move_.publish(msg_cmd_move_);
@@ -380,7 +393,7 @@ void ParkingIn::perpendicular_parking_left()
                 msg_cmd_turn_.data = 'D';
                 pub_turn_.publish(msg_cmd_turn_);
 
-                parking_succeed = true;     // parking succeed!
+                parking_finished = true;     // parking finished!
                 break;
             }
         }
@@ -396,9 +409,9 @@ void ParkingIn::perpendicular_parking_left()
             }
             else
             {
-                if (!in_parking_space)
+                if (!straight_state)
                 {
-                    // turn full left
+                    // keep turnning full left
                     msg_cmd_turn_.data = 'L';
                     pub_turn_.publish(msg_cmd_turn_);
                 }
@@ -419,14 +432,17 @@ void ParkingIn::perpendicular_parking_left()
 // *****************************************************
 void ParkingIn::perpendicular_parking_right()
 {
-    static bool in_parking_space = false;   // flag of car rear getting in parking space
+    static bool straight_state = false;   // flag of straight state of car
 
+    // stop
+    msg_cmd_move_.data = 0;
+    pub_move_.publish(msg_cmd_move_);
     // turn full right
     msg_cmd_turn_.data = 'R';
     pub_turn_.publish(msg_cmd_turn_);
 
     // check and change posture when car moves backward until parking is finished 
-    while (!parking_succeed)
+    while (!parking_finished)
     {
         // move backward with speed_parking_backward
         msg_cmd_move_.data = speed_parking_backward;
@@ -435,7 +451,14 @@ void ParkingIn::perpendicular_parking_right()
         // car rear is already in parking space
         if (msg_apa_lb_.range < parking_distance_max && msg_apa_rb_.range < parking_distance_max)
         {
-            in_parking_space = true;
+            // car is not ready for straight moving and 
+            // not too close to the parkwall (car) on the right side
+            if (!straight_state && msg_apa_rb_.range > parking_distance_min)
+            {
+                // keep turnning full right
+                msg_cmd_turn_.data = 'R';
+                pub_turn_.publish(msg_cmd_turn_);
+            }
 
             // car parallel to the right parkwall (car)
             if ((msg_apa_rb_.range - msg_apa_rb2_.range) < apa_tolerance)
@@ -443,6 +466,9 @@ void ParkingIn::perpendicular_parking_right()
                 // turn straight
                 msg_cmd_turn_.data = 'D';
                 pub_turn_.publish(msg_cmd_turn_);
+
+                // ready for straight moving
+                straight_state = true;
             }
 
             // car rear is too close to the right parkwall
@@ -469,6 +495,8 @@ void ParkingIn::perpendicular_parking_right()
                         break;
                     }
                 }
+                // ready for straight moving
+                straight_state = true;
                 // stop
                 msg_cmd_move_.data = 0;
                 pub_move_.publish(msg_cmd_move_);
@@ -504,6 +532,8 @@ void ParkingIn::perpendicular_parking_right()
                         break;
                     }
                 }
+                // ready for straight moving
+                straight_state = true;
                 // stop
                 msg_cmd_move_.data = 0;
                 pub_move_.publish(msg_cmd_move_);
@@ -526,7 +556,7 @@ void ParkingIn::perpendicular_parking_right()
                 msg_cmd_turn_.data = 'D';
                 pub_turn_.publish(msg_cmd_turn_);
 
-                parking_succeed = true;     // parking succeed!
+                parking_finished = true;     // parking finished!
                 break;
             }
         }
@@ -542,9 +572,9 @@ void ParkingIn::perpendicular_parking_right()
             }
             else
             {
-                if (!in_parking_space)
+                if (!straight_state)
                 {
-                    // turn full right
+                    // keep turnning full right
                     msg_cmd_turn_.data = 'R';
                     pub_turn_.publish(msg_cmd_turn_);
                 }
@@ -584,7 +614,7 @@ int main(int argc, char **argv)
     sp_spinner.reset(new ros::AsyncSpinner(0, &callback_queue));
 
     // set loop rate
-    ros::Rate loop_rate(100);
+    ros::Rate loop_rate(10);
     while (ros::ok())
     {
         if (choosed_parking_space != 0)
@@ -602,55 +632,68 @@ int main(int argc, char **argv)
 
                 trigger_spinner = true;
             }
+            else
+            {
+                if (parking_finished)
+                {
+                    // stop spinners for custom callback queue
+                    sp_spinner->stop();
+                    ROS_INFO("Spinners disabled in parking_in");
+
+                    // reset
+                    trigger_spinner = false;
+                    choosed_parking_space = 0;
+                    parking_finished = false;
+                    time_out = false;
+
+                    // could shutdown this node after parking
+                    //ros::shutdown();
+                }
+                else
+                {
+                    if (time_out)
+                    {
+                        ROS_INFO("time of %f[s] for parking is over");
+                        // here can ask the driver if quit parking:
+                        // do move back to the street and go on searching parking space
+                        // stop spinners for custom callback queue
+                        // sp_spinner->stop();
+
+                        // or continue parking:
+                        // do continue
+                    }
+                }
+            }
 
             // check parking_space and park in
             switch (choosed_parking_space)
             {
             case SPACE_LEFT_PERPENDICULAR:
                 ROS_INFO("perpendicular_parking_left start");
-
                 // move forward before perpendicular parking in
                 ParkingIn_obj.move_before_parking(move_distance_perpendicular);
-                // perpendicular parking in
+                // perpendicular parking on the left side
                 ParkingIn_obj.perpendicular_parking_left();
-
-                if (parking_succeed || parking_failed)
-                {
-                    if (trigger_spinner)
-                    {
-                        // stop spinners for custom callback queue
-                        sp_spinner->stop();
-                        ROS_INFO("Spinners disabled in parking_in");
-
-                        trigger_spinner = false;
-                    }
-                    // shutdown this node after parking
-                    ros::shutdown();
-                }
-
                 break;
 
             case SPACE_RIGHT_PERPENDICULAR:
                 ROS_INFO("perpendicular_parking_right start");
-
                 // move forward before perpendicular parking in
                 ParkingIn_obj.move_before_parking(move_distance_perpendicular);
-                // perpendicular parking in
+                // perpendicular parking on the right side
                 ParkingIn_obj.perpendicular_parking_right();
+                break;
 
-                if (parking_succeed)
-                {
-                    if (trigger_spinner)
-                    {
-                        // stop spinners for custom callback queue
-                        sp_spinner->stop();
-                        ROS_INFO("Spinners disabled in parking_in");
+            case SPACE_LEFT_PARALLEL:
+                ROS_INFO("parallel_parking_left start");
+                // parallel parking on the left side
+                ParkingIn_obj.parallel_parking_left();
+                break;
 
-                        trigger_spinner = false;
-                    }
-                    // shutdown this node after parking
-                    ros::shutdown();
-                }
+            case SPACE_RIGHT_PARALLEL:
+                ROS_INFO("parallel_parking_right start");
+                // parallel parking on the right side
+                ParkingIn_obj.parallel_parking_right();
                 break;
 
             default:
