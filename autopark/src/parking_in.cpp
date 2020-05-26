@@ -625,7 +625,113 @@ void ParkingIn::perpendicular_parking_right()
 // *****************************************************
 void ParkingIn::parallel_parking_left()
 {
-    
+    static bool in_parking_space = false;   // flag of car rear getting in parking space
+
+    // stop
+    msg_cmd_move_.data = 0;
+    pub_move_.publish(msg_cmd_move_);
+    // turn full right
+    msg_cmd_turn_.data = 'L';
+    pub_turn_.publish(msg_cmd_turn_);
+    // move backward with speed_parking_backward
+    msg_cmd_move_.data = speed_parking_backward;
+    pub_move_.publish(msg_cmd_move_);
+
+    ros::Rate looprate(20);
+    // check and change car posture with a rate of 20Hz until half of car rear is in parking space
+    while (ros::ok() && !in_parking_space)
+    {
+        // publish move and turn commands
+        pub_move_.publish(msg_cmd_move_);
+        pub_turn_.publish(msg_cmd_turn_);
+
+        // car rear is in parking space
+        // (the actuall angle between car and parking space depends on the starting distance)
+        if (msg_upa_bcl_.range < parallel_length)
+        {
+            // turn straight
+            msg_cmd_turn_.data = 'D';
+            pub_turn_.publish(msg_cmd_turn_);
+        }
+
+        // sensor upa_bcl is already in the middle of the parking space
+        if (msg_upa_bcl_.range < parallel_length/2)
+        {
+            // turn full right
+            msg_cmd_turn_.data = 'R';
+            pub_turn_.publish(msg_cmd_turn_);
+
+            in_parking_space = true;
+            break;      // break this loop
+        }
+        looprate.sleep();
+    }
+
+    // half of car rear is already in parking space
+    // check and change car posture with a rate of 20Hz until parking is finished
+    while (ros::ok() && !parking_finished)
+    {
+        // publish move and turn command in loop
+        pub_move_.publish(msg_cmd_move_);
+        pub_turn_.publish(msg_cmd_turn_);
+
+        // car is parallel to the parkwall on the left side
+        if (fabs(msg_apa_lb_.range - msg_apa_lb2_.range) < apa_tolerance)
+        {
+            // turn straight
+            msg_cmd_turn_.data = 'D';
+            pub_turn_.publish(msg_cmd_turn_);
+            // keep moving forward with speed_parking_forward
+            msg_cmd_move_.data = speed_parking_forward;
+            pub_move_.publish(msg_cmd_move_);
+
+            // car is close to parkwall (car) at front
+            if (msg_upa_fcl_.range < parking_distance_min || \
+                msg_upa_fcr_.range < parking_distance_min)
+            {
+                // stop
+                msg_cmd_move_.data = 0;
+                pub_move_.publish(msg_cmd_move_);
+
+                parking_finished = true;     // parking finished!
+                break;      // break this loop
+            }
+        }
+        // car is not parallel to the parkwall on the left side
+        else
+        {
+            // car is too close to parkwall (car) when moves backward
+            if (msg_car_speed_.data < 0 && \
+                min(msg_apa_lb_.range, msg_upa_bl_.range) < parking_distance_min)
+            {
+                // stop
+                msg_cmd_move_.data = 0;
+                pub_move_.publish(msg_cmd_move_);
+                // turn full left
+                msg_cmd_turn_.data = 'L';
+                pub_turn_.publish(msg_cmd_turn_);
+                // move forward
+                msg_cmd_move_.data = speed_parking_forward;
+                pub_move_.publish(msg_cmd_move_);
+            }
+
+            // car is too close to parkwall (car) when moves forward
+            if (msg_car_speed_.data > 0 && \
+                min(msg_apa_lf_.range, msg_upa_fl_.range) < parking_distance_min)
+            {
+                // stop
+                msg_cmd_move_.data = 0;
+                pub_move_.publish(msg_cmd_move_);
+                // turn full right
+                msg_cmd_turn_.data = 'R';
+                pub_turn_.publish(msg_cmd_turn_);
+                // move backward with speed_parking_backward
+                msg_cmd_move_.data = speed_parking_backward;
+                pub_move_.publish(msg_cmd_move_);
+            }
+        }
+        looprate.sleep();
+    }
 }
 
 
@@ -634,7 +740,113 @@ void ParkingIn::parallel_parking_left()
 // *****************************************************
 void ParkingIn::parallel_parking_right()
 {
+    static bool in_parking_space = false;   // flag of car rear getting in parking space
 
+    // stop
+    msg_cmd_move_.data = 0;
+    pub_move_.publish(msg_cmd_move_);
+    // turn full right
+    msg_cmd_turn_.data = 'R';
+    pub_turn_.publish(msg_cmd_turn_);
+    // move backward with speed_parking_backward
+    msg_cmd_move_.data = speed_parking_backward;
+    pub_move_.publish(msg_cmd_move_);
+
+    ros::Rate looprate(20);
+    // check and change car posture with a rate of 20Hz until car rear is in parking_space
+    while (ros::ok() && !in_parking_space)
+    {
+        // publish move and turn commands
+        pub_move_.publish(msg_cmd_move_);
+        pub_turn_.publish(msg_cmd_turn_);
+
+        // car rear is already in parking space
+        // (the actuall angle between car and parking space depends on the starting distance)
+        if (msg_upa_bcr_.range < parallel_length)
+        {
+            // turn straight
+            msg_cmd_turn_.data = 'D';
+            pub_turn_.publish(msg_cmd_turn_);
+        }
+
+        // sensor upa_bcr is already in the middle of the parking space
+        if (msg_upa_bcr_.range < parallel_length/2)
+        {
+            // turn full left
+            msg_cmd_turn_.data = 'L';
+            pub_turn_.publish(msg_cmd_turn_);
+
+            in_parking_space = true;
+            break;      // break this loop
+        }
+
+        looprate.sleep();
+    }
+
+    // car rear is already in parking space
+    // check and change car posture with a rate of 20Hz until parking is finished
+    while (ros::ok() && !parking_finished)
+    {
+        // publish move and turn command in loop
+        pub_move_.publish(msg_cmd_move_);
+        pub_turn_.publish(msg_cmd_turn_);
+
+        // car is parallel to the parkwall on the right side
+        if (fabs(msg_apa_rb_.range - msg_apa_rb2_.range) < apa_tolerance)
+        {
+            // turn straight
+            msg_cmd_turn_.data = 'D';
+            pub_turn_.publish(msg_cmd_turn_);
+            // keep moving forward with speed_parking_forward
+            msg_cmd_move_.data = speed_parking_forward;
+            pub_move_.publish(msg_cmd_move_);
+
+            // car is close to parkwall (car) at front
+            if (msg_upa_fcl_.range < parking_distance_min || \
+                msg_upa_fcr_.range < parking_distance_min)
+            {
+                // stop
+                msg_cmd_move_.data = 0;
+                pub_move_.publish(msg_cmd_move_);
+
+                parking_finished = true;     // parking finished!
+                break;      // break this loop
+            }
+        }
+        // car is not parallel to the parkwall on the right side
+        else
+        {
+            // car is too close to parkwall (car) when moves backward
+            if (msg_car_speed_.data < 0 && \
+                min(msg_apa_rb_.range, msg_upa_br_.range) < parking_distance_min)
+            {
+                // stop
+                msg_cmd_move_.data = 0;
+                pub_move_.publish(msg_cmd_move_);
+                // turn full right
+                msg_cmd_turn_.data = 'R';
+                pub_turn_.publish(msg_cmd_turn_);
+                // move forward
+                msg_cmd_move_.data = speed_parking_forward;
+                pub_move_.publish(msg_cmd_move_);
+            }
+
+            // car is too close to parkwall (car) when moves forward
+            if (msg_car_speed_.data > 0 && \
+                min(msg_apa_rf_.range, msg_upa_fr_.range) < parking_distance_min)
+            {
+                // stop
+                msg_cmd_move_.data = 0;
+                pub_move_.publish(msg_cmd_move_);
+                // turn full left
+                msg_cmd_turn_.data = 'L';
+                pub_turn_.publish(msg_cmd_turn_);
+                // move backward with speed_parking_backward
+                msg_cmd_move_.data = speed_parking_backward;
+                pub_move_.publish(msg_cmd_move_);
+            }
+        }
+    }
 }
 
 
