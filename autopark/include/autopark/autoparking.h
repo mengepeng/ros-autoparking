@@ -12,10 +12,6 @@
 
 #include <stdint.h>
 
-// for searching parking space and parking out
-extern uint32_t parking_space;            // global variable for parking space
-
-
 #define setbit(x, y) x|=(1<<y)
 #define clrbit(x, y) x&=~(1<<y)
 //  x   x   x   x     x   x   x   x
@@ -32,6 +28,8 @@ extern uint32_t parking_space;            // global variable for parking space
 #define SPACE_LEFT_PERPENDICULAR        0x80    // 0 1 0 1  0 0 0 0
 #define SPACE_RIGHT_PARALLEL            0x06    // 0 0 0 0  0 1 1 0
 #define SPACE_RIGHT_PERPENDICULAR       0x05    // 0 0 0 0  0 1 0 1
+
+extern uint32_t parking_space;                  // global variable for saving parking space
 
 extern const float range_diff;                  // [m] range difference to distinguish turn point 
 extern const float distance_search;             // [m] maximum distance between car and parking space

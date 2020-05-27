@@ -212,6 +212,9 @@ void ChooseParkingSpace::choose_parking_space()
     {
         // do nothing
     }
+
+    // save parking space info via global variable parking_space
+    parking_space = msg_parking_space_.seq;
 }
 
 
