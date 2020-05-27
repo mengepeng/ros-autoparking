@@ -12,7 +12,9 @@
 
 #include <stdint.h>
 
-volatile uint32_t parking_space;            // global variable for parking space
+// for searching parking space and parking out
+extern uint32_t parking_space;            // global variable for parking space
+
 
 #define setbit(x, y) x|=(1<<y)
 #define clrbit(x, y) x&=~(1<<y)

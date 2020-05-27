@@ -9,6 +9,8 @@
 
 #include "autopark/autoparking.h"
 
+uint32_t parking_space = 0;                     // global variable for parking space
+
 const float range_diff = 0.2;                   // [m] range difference to distinguish turn point 
 const float distance_search = 2;                // [m] maximum distance between car and parking space
 const float parallel_width = 6;                 // [m] minimum width of parallel parking space
