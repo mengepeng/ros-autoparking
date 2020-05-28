@@ -57,7 +57,7 @@ SurroundMonitor::SurroundMonitor()
     sub_upa_br_ = nh_.subscribe<sensor_msgs::Range>("upa_br", 1, \
     &SurroundMonitor::callback_upa_br, this);
 
-    pub_move_ = nh_.advertise<std_msgs::Float32>("cmd_stop", 1);
+    pub_move_ = nh_.advertise<std_msgs::Float32>("cmd_move", 1);
 
     pub_forward_ = nh_.advertise<std_msgs::Bool>("forward_enable", 1);
 

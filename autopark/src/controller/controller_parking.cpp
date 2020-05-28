@@ -29,6 +29,7 @@ int main(int argc, char **argv)
     msg_parking_enable.data = true;
     msg_move.data = speed_search_parking;
 
+    ros::Rate loop_rate(10);
     while (ros::ok())
     {
         if (pub_enable.getNumSubscribers() > 0 && pub_move.getNumSubscribers() > 0)
@@ -39,13 +40,15 @@ int main(int argc, char **argv)
 
             // publish message 
             pub_enable.publish(msg_parking_enable);
-            pub_enable.publish(msg_move);
+            pub_move.publish(msg_move);
 
             ros::spinOnce();
 
             // close this node
             ros::shutdown();    // this node run only once at the beginning
         }
+
+        loop_rate.sleep();
     }
 
     return 0;
