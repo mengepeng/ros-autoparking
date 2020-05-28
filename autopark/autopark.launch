@@ -14,8 +14,10 @@
 	<node pkg="autopark" type="sensor_encoder" 		name="sensor_encoder" />
 	<node pkg="autopark" type="sensor_apa_lf" 		name="sensor_apa_lf" />
 	<node pkg="autopark" type="sensor_apa_lb" 		name="sensor_apa_lb" />
+	<node pkg="autopark" type="sensor_apa_lb2" 		name="sensor_apa_lb2" />
 	<node pkg="autopark" type="sensor_apa_rf" 		name="sensor_apa_rf" />
 	<node pkg="autopark" type="sensor_apa_rb" 		name="sensor_apa_rb" />
+	<node pkg="autopark" type="sensor_apa_rb2" 		name="sensor_apa_rb2" />
 
 	<node pkg="autopark" type="sensor_upa_fl" 		name="sensor_upa_fl" />
 	<node pkg="autopark" type="sensor_upa_fcl" 		name="sensor_upa_fcl" />
