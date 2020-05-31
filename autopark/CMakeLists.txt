@@ -129,8 +129,11 @@ target_link_libraries(autoparking ${catkin_LIBRARIES})
 add_dependencies(autoparking ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
 
-add_executable(controller_parking src/controller/controller_parking.cpp)
-target_link_libraries(controller_parking autoparking ${catkin_LIBRARIES})
+add_executable(controller_parking_start src/controller/controller_parking_start.cpp)
+target_link_libraries(controller_parking_start autoparking ${catkin_LIBRARIES})
+
+add_executable(controller_parking_stop src/controller/controller_parking_stop.cpp)
+target_link_libraries(controller_parking_stop autoparking ${catkin_LIBRARIES})
 
 add_executable(controller_move src/controller/controller_move.cpp)
 target_link_libraries(controller_move ${catkin_LIBRARIES})
@@ -182,6 +185,9 @@ target_link_libraries(sensor_upa_bcr ${catkin_LIBRARIES})
 
 add_executable(sensor_upa_br src/sensor/sensor_upa_br.cpp)
 target_link_libraries(sensor_upa_br ${catkin_LIBRARIES})
+
+add_executable(search_parking_space src/search_parking_space.cpp)
+target_link_libraries(search_parking_space autoparking ${catkin_LIBRARIES})
 
 add_executable(search_parking_space_lf src/search_parking_space_lf.cpp)
 target_link_libraries(search_parking_space_lf autoparking ${catkin_LIBRARIES})

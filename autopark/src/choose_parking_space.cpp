@@ -13,6 +13,11 @@
 
 using namespace std;
 
+static bool parking_enable = false;     // flag of parking enable
+static bool search_done = false;        // flag of searching parking space done
+static bool trigger_spinner = false;    // flag of spinners enable
+
+boost::shared_ptr<ros::AsyncSpinner> sp_spinner;   // create a shared_ptr for AsyncSpinner object
 
 // define struct of Times for stop situation during check and choose parking space
 struct Times
@@ -24,8 +29,17 @@ struct Times
 } time_left, time_right;    // define two objects for left and right side
 
 
+// callback from global callback queue
+// callback of sub_parking_enable
+void callback_parking_enable(const std_msgs::Bool::ConstPtr& msg)
+{
+    ROS_INFO("call callback of parking_enable: %d", msg->data);
+    parking_enable = msg->data;
+}
+
+
 // CONSTRUCTOR: called when this object is created to set up subscribers and publishers
-ChooseParkingSpace::ChooseParkingSpace()
+ChooseParkingSpace::ChooseParkingSpace(ros::NodeHandle* nodehandle):nh_(*nodehandle)
 {
     ROS_INFO("call constructor in choose_parking_space");
 
@@ -41,12 +55,12 @@ ChooseParkingSpace::ChooseParkingSpace()
     sub_parking_space_rb_ = nh_.subscribe<std_msgs::Header>("parking_space_rb", 1, \
     &ChooseParkingSpace::callback_parking_space_rb, this);
 
-    pub_parking_space_ = nh_.advertise<std_msgs::Header>("parking_space", 10);
-    pub_parking_enable_ = nh_.advertise<std_msgs::Bool>("parking_enable", 10);
+    pub_parking_space_ = nh_.advertise<std_msgs::Header>("parking_space", 1);
+    pub_search_done_ = nh_.advertise<std_msgs::Bool>("search_done", 1);
 
     // initialize:
     msg_parking_space_.seq = 0;             // 0 0 0 0  0 0 0 0
-    msg_parking_enable_.data = false;       // to stop searching parking space
+    msg_search_done_.data = true;           // to stop searching parking space
 }
 
 // DESTRUCTOR: called when this object is deleted to release memory 
@@ -175,14 +189,20 @@ void ChooseParkingSpace::callback_parking_space_rb(const std_msgs::Header::Const
 // choose a parking space: parking space on the right side has priority
 void ChooseParkingSpace::choose_parking_space()
 {
-    ROS_INFO("call choose function");
+    ROS_INFO("call choose parking space function");
+
     // parallel parking space on the right side
     if (msg_parking_space_.seq & SPACE_RIGHT_PARALLEL == SPACE_RIGHT_PARALLEL)
     {
         msg_parking_space_.seq = SPACE_RIGHT_PARALLEL;
         msg_parking_space_.stamp = ros::Time::now();
         pub_parking_space_.publish(msg_parking_space_);
-        pub_parking_enable_.publish(msg_parking_enable_);
+        pub_search_done_.publish(msg_search_done_);
+
+        // save parking space info via global variable parking_space
+        parking_space = SPACE_RIGHT_PARALLEL;
+
+        search_done = true;     // to stop choosing parking space
     }
     // perpendicular parking space on the right side 
     else if (msg_parking_space_.seq & SPACE_RIGHT_PERPENDICULAR == SPACE_RIGHT_PERPENDICULAR)
@@ -190,7 +210,12 @@ void ChooseParkingSpace::choose_parking_space()
         msg_parking_space_.seq = SPACE_RIGHT_PERPENDICULAR;
         msg_parking_space_.stamp = ros::Time::now();
         pub_parking_space_.publish(msg_parking_space_);
-        pub_parking_enable_.publish(msg_parking_enable_);
+        pub_search_done_.publish(msg_search_done_);
+
+        // save parking space info via global variable parking_space
+        parking_space = SPACE_RIGHT_PERPENDICULAR;
+
+        search_done = true;
     }
     // parallel parking space on the left side
     else if (msg_parking_space_.seq & SPACE_LEFT_PARALLEL == SPACE_LEFT_PARALLEL)
@@ -198,7 +223,12 @@ void ChooseParkingSpace::choose_parking_space()
         msg_parking_space_.seq = SPACE_LEFT_PARALLEL;
         msg_parking_space_.stamp = ros::Time::now();
         pub_parking_space_.publish(msg_parking_space_);
-        pub_parking_enable_.publish(msg_parking_enable_);
+        pub_search_done_.publish(msg_search_done_);
+
+        // save parking space info via global variable parking_space
+        parking_space = SPACE_LEFT_PARALLEL;
+
+        search_done = true;
     }
     // perpendicular parking space on the left side
     else if (msg_parking_space_.seq & SPACE_LEFT_PERPENDICULAR == SPACE_LEFT_PERPENDICULAR)
@@ -206,15 +236,17 @@ void ChooseParkingSpace::choose_parking_space()
         msg_parking_space_.seq = SPACE_LEFT_PERPENDICULAR;
         msg_parking_space_.stamp = ros::Time::now();
         pub_parking_space_.publish(msg_parking_space_);
-        pub_parking_enable_.publish(msg_parking_enable_);
+        pub_search_done_.publish(msg_search_done_);
+
+        // save parking space info via global variable parking_space
+        parking_space = SPACE_LEFT_PERPENDICULAR;
+
+        search_done = true;
     }
     else
     {
         // do nothing
     }
-
-    // save parking space info via global variable parking_space
-    parking_space = msg_parking_space_.seq;
 }
 
 
@@ -222,8 +254,23 @@ int main(int argc, char **argv)
 {
     ros::init(argc, argv, "choose_parking_space");
 
+    // create a node handle, use global callback queue
+    ros::NodeHandle nh;
+    //create a node handle for class, use custom callback queue
+    ros::NodeHandle nh_c;
+    // create custom callback queue
+    ros::CallbackQueue callback_queue;
+    // set custom callback queue
+    nh_c.setCallbackQueue(&callback_queue);
+
+    ros::Subscriber sub_parking_enable = nh.subscribe<std_msgs::Bool>("parking_enable", 1, \
+    callback_parking_enable);
+
     // instantiating an object of class ChooseParkingSpace
-    ChooseParkingSpace ChooseParkingSpace_obj;
+    ChooseParkingSpace ChooseParkingSpace_obj(&nh_c);  // pass nh_c to class constructor
+
+    // create AsyncSpinner, run it on all available cores to process custom callback queue
+    sp_spinner.reset(new ros::AsyncSpinner(0, &callback_queue));
 
     // initialize Times: 
     time_left.duration = 0;
@@ -232,9 +279,66 @@ int main(int argc, char **argv)
     time_right.duration = 0;
     time_right.trigger = false;
 
-    // use 5 threads for 5 callbacks
-    ros::AsyncSpinner spinner(5);
-    spinner.start();
+    // set loop rate
+    ros::Rate loop_rate(100);
+    while (ros::ok())
+    {
+        if (parking_enable)
+        {
+            ROS_INFO_STREAM_ONCE("choose parking space enabled");
+            if (!trigger_spinner)
+            {
+                // clear old callbacks in custom callback queue
+                callback_queue.clear();
+                // start spinners for custom callback queue
+                sp_spinner->start();
+                ROS_INFO("Spinners enabled in choose_parking_space");
+
+                trigger_spinner = true;
+            }
+
+            if (search_done)
+            {
+                ROS_INFO_STREAM_ONCE("choose parking space finished");
+                if (trigger_spinner)
+                {
+                    // stop spinners for custom callback queue
+                    sp_spinner->stop();
+                    ROS_INFO("Spinners disabled in choose_parking_space");
+
+                    // reset
+                    parking_enable = false;
+                    search_done = false;
+                    trigger_spinner = false;
+                }
+            }
+        }
+        else
+        {
+            ROS_INFO_STREAM_ONCE("choose parking space disabled");
+            if (trigger_spinner)
+            {
+                // stop spinners for custom callback queue
+                sp_spinner->stop();
+                ROS_INFO("Spinners disabled in choose_parking_space");
+
+                // reset
+                parking_enable = false;
+                search_done = false;
+                trigger_spinner = false;
+            }
+        }
+
+        // process message in global callback queue: "parking_enable"
+        ros::spinOnce();
+
+        loop_rate.sleep();
+    }
+
+    // release AsyncSpinner object
+    sp_spinner.reset();
+
+    // wait for ROS threads to terminate
     ros::waitForShutdown();
 
     return 0;

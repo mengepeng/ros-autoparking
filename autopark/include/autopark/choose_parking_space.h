@@ -35,9 +35,9 @@ private:
     ros::Subscriber sub_parking_space_rb_;
 
     ros::Publisher pub_parking_space_;
-    ros::Publisher pub_parking_enable_;
+    ros::Publisher pub_search_done_;
 
-    std_msgs::Bool msg_parking_enable_;
+    std_msgs::Bool msg_search_done_;
     std_msgs::Float32 msg_car_speed_;
     std_msgs::Header msg_parking_space_;
     std_msgs::Header msg_parking_space_lf_;
@@ -49,7 +49,7 @@ private:
 
 
 public:
-    ChooseParkingSpace();
+    ChooseParkingSpace(ros::NodeHandle* nodehandle);
     void callback_car_speed(const std_msgs::Float32::ConstPtr& msg);
     void callback_parking_space_lf(const std_msgs::Header::ConstPtr& msg);
     void callback_parking_space_lb(const std_msgs::Header::ConstPtr& msg);

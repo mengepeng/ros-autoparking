@@ -12,8 +12,9 @@
 
 using namespace std;
 
-static bool parking_enable = false;     // flag to enable parking
-static bool trigger_check = false;      // flag to enable check function 
+static bool parking_enable = false;     // flag of parking enable
+static bool search_done = false;        // flag of searching parking space done
+static bool trigger_check = false;      // flag to enable check function
 static bool trigger_spinner = false;    // flag to enable spinners
 
 static float distance_min;              // minimum distance between car and object
@@ -31,10 +32,18 @@ struct Times
 
 
 // callback from global callback queue
+// callback of sub_parking_enable
 void callback_parking_enable(const std_msgs::Bool::ConstPtr& msg)
 {
     ROS_INFO("call callback of parking_enable: %d", msg->data);
     parking_enable = msg->data;
+}
+
+// callback of sub_search_done
+void callback_search_done(const std_msgs::Bool::ConstPtr& msg)
+{
+    ROS_INFO("call callback of search_done: %d", msg->data);
+    search_done = msg->data;
 }
 
 
@@ -328,6 +337,9 @@ int main(int argc, char **argv)
     ros::Subscriber sub_parking_enable = nh.subscribe<std_msgs::Bool>("parking_enable", 1, \
     callback_parking_enable);
 
+    ros::Subscriber sub_search_done = nh.subscribe<std_msgs::Bool>("search_done", 1, \
+    callback_search_done);
+
     // instantiating an object of class SearchParkingSpaceRF
     SearchParkingSpaceRF SearchParkingSpaceRF_rf(&nh_c);  // pass nh_c to class constructor
 
@@ -347,7 +359,8 @@ int main(int argc, char **argv)
     {
         if (parking_enable)
         {
-            ROS_INFO_STREAM_ONCE("search parking space enabled");
+            ROS_INFO_STREAM_ONCE("search parking space with apa_rf enabled");
+
             if (!trigger_spinner)
             {
                 // clear old callbacks in custom callback queue
@@ -359,26 +372,43 @@ int main(int argc, char **argv)
                 trigger_spinner = true;
             }
 
-            if (trigger_check)
+            if (!search_done)
             {
                 // check new apa message to find parking space
                 SearchParkingSpaceRF_rf.check_parking_space();
             }
+            else
+            {
+                ROS_INFO_STREAM_ONCE("search parking space finished");
+                if (trigger_spinner)
+                {
+                    // stop spinners for custom callback queue
+                    sp_spinner->stop();
+                    ROS_INFO("Spinners disabled in search_parking_space_rf");
+
+                    // reset
+                    parking_enable = false;
+                    search_done = false;
+                    trigger_spinner = false;
+                }
+            }
         }
         else
         {
-            ROS_INFO_STREAM_ONCE("search parking space disabled");
+            ROS_INFO_STREAM_ONCE("search parking space with apa_rf disabled");
             if (trigger_spinner)
             {
                 // stop spinners for custom callback queue
                 sp_spinner->stop();
                 ROS_INFO("Spinners disabled in search_parking_space_rf");
 
+                // reset
+                parking_enable = false;
+                search_done = false;
                 trigger_spinner = false;
             }
         }
 
-        // process message in global callback queue: "parking_enable"
         ros::spinOnce();
 
         loop_rate.sleep();
