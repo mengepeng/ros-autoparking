@@ -135,6 +135,9 @@ target_link_libraries(controller_parking_start autoparking ${catkin_LIBRARIES})
 add_executable(controller_parking_stop src/controller/controller_parking_stop.cpp)
 target_link_libraries(controller_parking_stop autoparking ${catkin_LIBRARIES})
 
+add_executable(controller_parking_out src/controller/controller_parking_out.cpp)
+target_link_libraries(controller_parking_out autoparking ${catkin_LIBRARIES})
+
 add_executable(controller_move src/controller/controller_move.cpp)
 target_link_libraries(controller_move ${catkin_LIBRARIES})
 
@@ -209,6 +212,9 @@ target_link_libraries(surround_monitor autoparking ${catkin_LIBRARIES})
 
 add_executable(parking_in src/parking_in.cpp)
 target_link_libraries(parking_in autoparking ${catkin_LIBRARIES})
+
+add_executable(parking_out src/parking_out.cpp)
+target_link_libraries(parking_out autoparking ${catkin_LIBRARIES})
 
 
 ## Add cmake target dependencies of the library
