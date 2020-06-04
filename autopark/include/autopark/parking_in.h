@@ -10,12 +10,8 @@
 #ifndef PARKING_IN_H_
 #define PARKING_IN_H_
 
-#include <queue>
-#include <vector>
 #include <cmath>
 #include <algorithm>
-#include <string>
-#include <sstream>
 
 #include <ros/ros.h>
 #include <ros/spinner.h>
@@ -32,6 +28,8 @@ class ParkingIn
 {
 private:
     ros::NodeHandle nh_;
+
+    ros::Subscriber sub_parking_space_;
     ros::Subscriber sub_car_speed_;
     ros::Subscriber sub_apa_lf_;
     ros::Subscriber sub_apa_lb_;
@@ -53,6 +51,7 @@ private:
 
     ros::WallTimer timer_;
 
+    std_msgs::Header msg_parking_space_;
     std_msgs::Float32 msg_car_speed_;
     sensor_msgs::Range msg_apa_lf_;
     sensor_msgs::Range msg_apa_lb_;
@@ -74,6 +73,8 @@ private:
 
 public:
     ParkingIn(ros::NodeHandle* nodehandle);
+
+    void callback_parking_space(const std_msgs::Header::ConstPtr& msg);
     void callback_car_speed(const std_msgs::Float32::ConstPtr& msg);
 
     void callback_apa_lf(const sensor_msgs::Range::ConstPtr& msg);
@@ -96,10 +97,10 @@ public:
     void callback_timer(const ros::WallTimerEvent& event);
 
     void move_before_parking(float move_distance);
-    void perpendicular_parking_left();
-    void perpendicular_parking_right();
-    void parallel_parking_left();
-    void parallel_parking_right();
+    void parking_left_perpendicular();
+    void parking_left_parallel();
+    void parking_right_perpendicular();
+    void parking_right_parallel();
 
     ~ParkingIn();
 };

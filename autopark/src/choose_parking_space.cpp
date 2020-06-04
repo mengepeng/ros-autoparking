@@ -247,6 +247,20 @@ void ChooseParkingSpace::choose_parking_space()
     {
         // do nothing
     }
+
+    if (search_done)
+    {
+        ROS_INFO("choose parking space finished");
+
+        // stop spinners for custom callback queue
+        sp_spinner->stop();
+        ROS_INFO("spinners stop");
+
+        // reset
+        parking_enable = false;
+        search_done = false;
+        trigger_spinner = false;
+    }
 }
 
 
@@ -280,47 +294,34 @@ int main(int argc, char **argv)
     time_right.trigger = false;
 
     // set loop rate
-    ros::Rate loop_rate(100);
+    ros::Rate loop_rate(10);
     while (ros::ok())
     {
+        ROS_INFO_STREAM_ONCE("node choose_parking_space is running");
         if (parking_enable)
         {
-            ROS_INFO_STREAM_ONCE("choose parking space enabled");
             if (!trigger_spinner)
             {
+                ROS_INFO("choose parking space enabled");
+
                 // clear old callbacks in custom callback queue
                 callback_queue.clear();
                 // start spinners for custom callback queue
                 sp_spinner->start();
-                ROS_INFO("Spinners enabled in choose_parking_space");
+                ROS_INFO("spinners start");
 
                 trigger_spinner = true;
-            }
-
-            if (search_done)
-            {
-                ROS_INFO_STREAM_ONCE("choose parking space finished");
-                if (trigger_spinner)
-                {
-                    // stop spinners for custom callback queue
-                    sp_spinner->stop();
-                    ROS_INFO("Spinners disabled in choose_parking_space");
-
-                    // reset
-                    parking_enable = false;
-                    search_done = false;
-                    trigger_spinner = false;
-                }
             }
         }
         else
         {
-            ROS_INFO_STREAM_ONCE("choose parking space disabled");
             if (trigger_spinner)
             {
+                ROS_INFO("choose parking space disabled");
+
                 // stop spinners for custom callback queue
                 sp_spinner->stop();
-                ROS_INFO("Spinners disabled in choose_parking_space");
+                ROS_INFO("spinners stop");
 
                 // reset
                 parking_enable = false;

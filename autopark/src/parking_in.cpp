@@ -1,5 +1,5 @@
 /******************************************************************
- * Filename: parking_in.h
+ * Filename: parking_in.cpp
  * Version: v1.0
  * Author: Meng Peng
  * Date: 2020-05-11
@@ -14,12 +14,10 @@
 using namespace std;
 
 static bool parking_enable = false;         // flag of parking enable
-static uint32_t choosed_parking_space = 0;  // choosed parking space
 static bool trigger_check = false;          // flag to enable check function 
 static bool trigger_spinner = false;        // flag to enable spinners
 
 static bool parking_finished = false;       // flag of parking finished
-static bool time_out = false;               // flag of time out
 
 boost::shared_ptr<ros::AsyncSpinner> sp_spinner;   // create a shared_ptr for AsyncSpinner object
 
@@ -32,18 +30,14 @@ void callback_parking_enable(const std_msgs::Bool::ConstPtr& msg)
     parking_enable = msg->data;
 }
 
-// callback of sub_parking_space
-void callback_parking_space(const std_msgs::Header::ConstPtr& msg)
-{
-    ROS_INFO("call callback of parking_space: %d", msg->seq);
-    choosed_parking_space = msg->seq;
-}
-
 
 // CONSTRUCTOR: called when this object is created to set up subscribers and publishers
 ParkingIn::ParkingIn(ros::NodeHandle* nodehandle):nh_(*nodehandle)
 {
-    ROS_INFO("call constructor in perpendicular_parking_right");
+    ROS_INFO("call constructor of ParkingIn");
+
+    sub_parking_space_ = nh_.subscribe<std_msgs::Header>("parking_space", 1, \
+    &ParkingIn::callback_parking_space, this);
 
     sub_car_speed_ = nh_.subscribe<std_msgs::Float32>("car_speed", 1, \
     &ParkingIn::callback_car_speed, this);
@@ -101,10 +95,69 @@ ParkingIn::ParkingIn(ros::NodeHandle* nodehandle):nh_(*nodehandle)
 // DESTRUCTOR: called when this object is deleted to release memory 
 ParkingIn::~ParkingIn(void)
 {
-    ROS_INFO("call destructor in perpendicular_parking_right");
+    ROS_INFO("call destructor of ParkingIn");
 }
 
 // callbacks from custom callback queue
+// callback of sub_parking_space_
+void ParkingIn::callback_parking_space(const std_msgs::Header::ConstPtr& msg)
+{
+    ROS_INFO("call callback of parking_space: %d", msg->seq);
+    msg_parking_space_.seq = msg->seq;
+
+    // check parking space and park in
+    switch (msg_parking_space_.seq)
+    {
+    case SPACE_LEFT_PERPENDICULAR:
+        ROS_INFO("parking_left_perpendicular start");
+        // move forward before perpendicular parking in
+        move_before_parking(move_distance_perpendicular);
+        // perpendicular parking on the left side
+        parking_left_perpendicular();
+        break;
+
+    case SPACE_LEFT_PARALLEL:
+        ROS_INFO("parking_left_parallel start");
+        // parallel parking on the left side
+        parking_left_parallel();
+        break;
+
+    case SPACE_RIGHT_PERPENDICULAR:
+        ROS_INFO("parking_right_perpendicular start");
+        // move forward before perpendicular parking in
+        move_before_parking(move_distance_perpendicular);
+        // perpendicular parking on the right side
+        parking_right_perpendicular();
+        break;
+
+    case SPACE_RIGHT_PARALLEL:
+        ROS_INFO("parking_right_parallel start");
+        // parallel parking on the right side
+        parking_right_parallel();
+        break;
+
+    default:
+        break;
+    }
+
+    if (parking_finished)
+    {
+        ROS_INFO("parking in finished");
+
+        // save the parking space for parking out
+        parking_space = msg_parking_space_.seq;
+
+        // reset
+        parking_enable = false;
+        trigger_spinner = false;
+        parking_finished = false;
+
+        // stop spinners for custom callback queue
+        sp_spinner->stop();
+        ROS_INFO("spinners stop");
+    }
+}
+
 // callback of sub_car_speed_
 void ParkingIn::callback_car_speed(const std_msgs::Float32::ConstPtr& msg)
 {
@@ -117,8 +170,17 @@ void ParkingIn::callback_timer(const ros::WallTimerEvent& event)
 {
     ROS_INFO("timer of %f[s] is triggered", parking_time);
 
-    time_out = true;
+    // here can ask the driver if quit parking:
+    /*
+    // do move back to the street and go on searching parking space
+    // stop spinners for custom callback queue
+    // sp_spinner->stop();
+    */
+
+    // or continue parking:
+    /* do continue */
 }
+
 
 // callback of sub_apa_lf_
 void ParkingIn::callback_apa_lf(const sensor_msgs::Range::ConstPtr& msg)
@@ -250,16 +312,15 @@ void ParkingIn::callback_upa_br(const sensor_msgs::Range::ConstPtr& msg)
 // function of moving a given distance
 void ParkingIn::move_before_parking(float move_distance)
 {
-    // move forward with speed_parking_forward until move_distacne is reached
-    msg_cmd_move_.data = speed_parking_forward;
-    pub_move_.publish(msg_cmd_move_);
-
-    static float moved_distance = 0;
+    static double moved_distance = 0;
     static ros::Time move_start, move_end;
     static double move_duration;
     move_start = ros::Time::now();
+    msg_cmd_move_.data = speed_parking_forward;
+    // move forward with speed_parking_forward until move_distance is reached
     while (moved_distance < move_distance)
     {
+        pub_move_.publish(msg_cmd_move_);
         ros::Duration(0.01).sleep();
         move_end = ros::Time::now();
         move_duration = (move_end - move_start).toSec();
@@ -276,7 +337,7 @@ void ParkingIn::move_before_parking(float move_distance)
 // *****************************************************
 // function of perpendicular parking on the left side
 // *****************************************************
-void ParkingIn::perpendicular_parking_left()
+void ParkingIn::parking_left_perpendicular()
 {
     // stop
     msg_cmd_move_.data = 0;
@@ -478,7 +539,7 @@ void ParkingIn::perpendicular_parking_left()
 // *****************************************************
 // function of perpendicular parking on the right side
 // *****************************************************
-void ParkingIn::perpendicular_parking_right()
+void ParkingIn::parking_right_perpendicular()
 {
     // stop
     msg_cmd_move_.data = 0;
@@ -680,7 +741,7 @@ void ParkingIn::perpendicular_parking_right()
 // *****************************************************
 // function of parallel parking on the left side
 // *****************************************************
-void ParkingIn::parallel_parking_left()
+void ParkingIn::parking_left_parallel()
 {
     // stop
     msg_cmd_move_.data = 0;
@@ -867,7 +928,7 @@ void ParkingIn::parallel_parking_left()
 // *****************************************************
 // function of parallel parking on the right side
 // *****************************************************
-void ParkingIn::parallel_parking_right()
+void ParkingIn::parking_right_parallel()
 {
     // stop
     msg_cmd_move_.data = 0;
@@ -1068,9 +1129,6 @@ int main(int argc, char **argv)
     ros::Subscriber sub_parking_enable = nh.subscribe<std_msgs::Bool>("parking_enable", 1, \
     callback_parking_enable);
 
-    ros::Subscriber sub_parking_space = nh.subscribe<std_msgs::Header>("parking_space", 1, \
-    callback_parking_space);
-
     // instantiating class object
     ParkingIn ParkingIn_obj(&nh_c);  // pass nh_c to class constructor
 
@@ -1081,115 +1139,40 @@ int main(int argc, char **argv)
     ros::Rate loop_rate(10);
     while (ros::ok())
     {
+        ROS_INFO_STREAM_ONCE("node parking_in is running");
         if (parking_enable)
         {
-            ROS_INFO_STREAM_ONCE("parking in enabled");
-
-            if (choosed_parking_space != 0)
+            if (!trigger_spinner)
             {
-                // save the choosed parking space for parking out
-                parking_space = choosed_parking_space;
+                ROS_INFO("parking in enabled");
 
-                if (!trigger_spinner)
-                {
-                    // clear old callbacks in custom callback queue
-                    callback_queue.clear();
-                    // start spinners for custom callback queue
-                    sp_spinner->start();
-                    ROS_INFO("Spinners enabled in parking_in");
+                // clear old callbacks in custom callback queue
+                callback_queue.clear();
+                // start spinners for custom callback queue
+                sp_spinner->start();
+                ROS_INFO("spinners start");
 
-                    trigger_spinner = true;
-                }
-                else
-                {
-                    if (parking_finished)
-                    {
-                        ROS_INFO("parking in finished");
-
-                        // stop spinners for custom callback queue
-                        sp_spinner->stop();
-                        ROS_INFO("Spinners disabled in parking_in");
-
-                        // reset
-                        parking_enable = false;
-                        trigger_spinner = false;
-                        choosed_parking_space = 0;
-                        parking_finished = false;
-                        time_out = false;
-                    }
-                    else
-                    {
-                        if (time_out)
-                        {
-                            ROS_INFO("time of %f[s] for parking is over", parking_time);
-                            // here can ask the driver if quit parking:
-                            // do move back to the street and go on searching parking space
-                            // stop spinners for custom callback queue
-                            // sp_spinner->stop();
-
-                            // or continue parking:
-                            // do continue
-                        }
-                    }
-                }
-
-                // check parking_space and park in
-                switch (choosed_parking_space)
-                {
-                case SPACE_LEFT_PERPENDICULAR:
-                    ROS_INFO("perpendicular_parking_left start");
-                    // move forward before perpendicular parking in
-                    ParkingIn_obj.move_before_parking(move_distance_perpendicular);
-                    // perpendicular parking on the left side
-                    ParkingIn_obj.perpendicular_parking_left();
-                    break;
-
-                case SPACE_RIGHT_PERPENDICULAR:
-                    ROS_INFO("perpendicular_parking_right start");
-                    // move forward before perpendicular parking in
-                    ParkingIn_obj.move_before_parking(move_distance_perpendicular);
-                    // perpendicular parking on the right side
-                    ParkingIn_obj.perpendicular_parking_right();
-                    break;
-
-                case SPACE_LEFT_PARALLEL:
-                    ROS_INFO("parallel_parking_left start");
-                    // parallel parking on the left side
-                    ParkingIn_obj.parallel_parking_left();
-                    break;
-
-                case SPACE_RIGHT_PARALLEL:
-                    ROS_INFO("parallel_parking_right start");
-                    // parallel parking on the right side
-                    ParkingIn_obj.parallel_parking_right();
-                    break;
-
-                default:
-                    break;
-                }
+                trigger_spinner = true;
             }
         }
         else
         {
-            ROS_INFO_STREAM_ONCE("parking in disabled");
             if (trigger_spinner)
             {
+                ROS_INFO("parking in disabled");
+
                 // stop spinners for custom callback queue
                 sp_spinner->stop();
-                ROS_INFO("Spinners disabled in parking_in");
+                ROS_INFO("spinners stop");
 
+                // reset
+                parking_enable = false;
                 trigger_spinner = false;
+                parking_finished = false;
             }
-
-            // reset
-            parking_enable = false;
-            trigger_spinner = false;
-            choosed_parking_space = 0;
-            parking_finished = false;
-            time_out = false;
         }
 
-        // process message in global callback queue: "parking_enable"
+        // process message in global callback queue
         ros::spinOnce();
 
         loop_rate.sleep();
