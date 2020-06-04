@@ -1,7 +1,5 @@
 <?xml version="1.0"?>
 <launch>
-	<node pkg="autopark" type="controller_parking_start" 		name="controller_parking_start" />
-	<node pkg="autopark" type="controller_parking_stop" 		name="controller_parking_stop" />
 	<node pkg="autopark" type="controller_move" 			name="controller_move" />
 	<node pkg="autopark" type="controller_turn" 			name="controller_turn" />
 	<node pkg="autopark" type="search_parking_space" 		name="search_parking_space" />	
@@ -12,6 +10,7 @@
 	<node pkg="autopark" type="choose_parking_space" 		name="choose_parking_space" />
 	<node pkg="autopark" type="surround_monitor" 			name="surround_monitor" />
 	<node pkg="autopark" type="parking_in" 				name="parking_in" />
+	<node pkg="autopark" type="parking_out" 			name="parking_out" />
 
 	<node pkg="autopark" type="sensor_encoder" 			name="sensor_encoder" />
 	<node pkg="autopark" type="sensor_apa_lf" 			name="sensor_apa_lf" />
