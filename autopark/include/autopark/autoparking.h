@@ -47,6 +47,8 @@ extern const float brake_distance_default;      // [m] default brake distance
 extern const float move_distance_perpendicular; // [m] move distance before perpendicular parking in
 extern const float parking_distance_min;        // [m] minimum distance between car and parkwall (car)
 extern const float parking_distance_max;        // [m] maximum distance between car and parkwall (car)
+extern const float distance_perpendicular_out;  // [m] move distance for perpendicular parking out
+extern const float distance_parallel_out;       // [m] safe distance for parallel parking out
 
 extern const float speed_search_parking;        // [m/s] car speed when search parking space
 extern const float speed_parking_forward;       // [m/s] car speed when move forward for parking
