@@ -247,20 +247,6 @@ void ChooseParkingSpace::choose_parking_space()
     {
         // do nothing
     }
-
-    if (search_done)
-    {
-        ROS_INFO("choose parking space finished");
-
-        // stop spinners for custom callback queue
-        sp_spinner->stop();
-        ROS_INFO("spinners stop");
-
-        // reset
-        parking_enable = false;
-        search_done = false;
-        trigger_spinner = false;
-    }
 }
 
 
@@ -311,6 +297,22 @@ int main(int argc, char **argv)
                 ROS_INFO("spinners start");
 
                 trigger_spinner = true;
+            }
+            else
+            {
+                if (search_done)
+                {
+                    ROS_INFO("choose parking space finished");
+
+                    // stop spinners for custom callback queue
+                    sp_spinner->stop();
+                    ROS_INFO("spinners stop");
+
+                    // reset
+                    parking_enable = false;
+                    search_done = false;
+                    trigger_spinner = false;
+                }
             }
         }
         else

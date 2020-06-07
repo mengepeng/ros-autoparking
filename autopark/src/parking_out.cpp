@@ -746,7 +746,7 @@ int main(int argc, char **argv)
                 callback_queue.clear();
                 // start spinners for custom callback queue
                 sp_spinner->start();
-                ROS_INFO("Spinners enabled");
+                ROS_INFO("spinners start");
 
                 trigger_spinner = true;
             }
@@ -797,7 +797,7 @@ int main(int argc, char **argv)
 
                     // stop spinners for custom callback queue
                     sp_spinner->stop();
-                    ROS_INFO("Spinners disabled");
+                    ROS_INFO("spinners stop");
 
                     // reset
                     parking_out_enable = false;

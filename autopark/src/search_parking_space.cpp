@@ -17,6 +17,7 @@ using namespace std;
 
 static bool parking_enable = false;     // flag of parking enable
 static bool search_done = false;        // flag of searching parking space done
+static bool trigger_search = false;     // flag of search trigger
 
 
 // callback of sub_parking_enable
@@ -59,33 +60,42 @@ int main(int argc, char **argv)
 
     while (ros::ok())
     {
+        ROS_INFO_STREAM_ONCE("node search_parking_space is running");
         if (parking_enable)
         {
-            ROS_INFO_STREAM_ONCE("search parking space enabled");
-
-            if (!search_done)
+            if (!trigger_search)
             {
-                ROS_INFO_STREAM_ONCE("search parking space started");
-
-                // publish message to topic "cmd_move"
-                pub_move.publish(msg_move);
+                ROS_INFO("search parking space started");
+                trigger_search = true;
             }
             else
             {
-                ROS_INFO_STREAM_ONCE("search parking space finished");
-
-                // reset
-                parking_enable = false;
-                search_done = false;
+                if (!search_done)
+                {
+                    // publish message to topic "cmd_move"
+                    pub_move.publish(msg_move);
+                }
+                else
+                {
+                    ROS_INFO("search parking space finished");
+                    // reset
+                    parking_enable = false;
+                    search_done = false;
+                    trigger_search = false;
+                }
             }
         }
         else
         {
-            ROS_INFO_STREAM_ONCE("search parking space disabled");
+            if (trigger_search)
+            {
+                ROS_INFO("search parking space disabled");
 
-            // reset
-            parking_enable = false;
-            search_done = false;
+                // reset
+                parking_enable = false;
+                search_done = false;
+                trigger_search = false;
+            }
         }
 
         ros::spinOnce();
