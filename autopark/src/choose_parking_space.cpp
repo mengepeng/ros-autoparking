@@ -3,8 +3,8 @@
  * Version: v1.0
  * Author: Meng Peng
  * Date: 2020-05-03
- * Description: choose parking space according to message from the 
- * topics of parking_space
+ * Description: choose parking space according to messages from the 
+ * topics of parking space
  * 
  ******************************************************************/
 
@@ -43,6 +43,9 @@ ChooseParkingSpace::ChooseParkingSpace(ros::NodeHandle* nodehandle):nh_(*nodehan
 {
     ROS_INFO("call constructor in choose_parking_space");
 
+    sub_car_speed_ = nh_.subscribe<std_msgs::Float32>("car_speed", 1, \
+    &ChooseParkingSpace::callback_car_speed, this);
+
     sub_parking_space_lf_ = nh_.subscribe<std_msgs::Header>("parking_space_lf", 1, \
     &ChooseParkingSpace::callback_parking_space_lf, this);
 
@@ -59,7 +62,6 @@ ChooseParkingSpace::ChooseParkingSpace(ros::NodeHandle* nodehandle):nh_(*nodehan
     pub_search_done_ = nh_.advertise<std_msgs::Bool>("search_done", 1);
 
     // initialize:
-    msg_parking_space_.seq = 0;             // 0 0 0 0  0 0 0 0
     msg_search_done_.data = true;           // to stop searching parking space
 }
 

@@ -467,10 +467,11 @@ void ParkingOut::parking_out_left_parallel()
         pub_turn_.publish(msg_cmd_turn_);
 
         // car head is out of parking space
-        if (msg_apa_lf_.range > distance_search)
+        if (msg_apa_lf_.range > distance_search && \
+            msg_upa_fl_.range > distance_search)
         {
-            // turn full left
-            msg_cmd_turn_.data = 'L';
+            // turn straight
+            msg_cmd_turn_.data = 'D';
             pub_turn_.publish(msg_cmd_turn_);
             // move forward
             msg_cmd_move_.data = speed_parking_forward;
@@ -507,6 +508,29 @@ void ParkingOut::parking_out_left_parallel()
                     pub_move_.publish(msg_cmd_move_);
                 }
             }
+        }
+
+        looprate.sleep();
+    }
+
+    // move forward until half of car rear is out of parking space
+    while (ros::ok())
+    {
+        // publish move and turn commands
+        pub_move_.publish(msg_cmd_move_);
+        pub_turn_.publish(msg_cmd_turn_);
+
+        // half of car rear is out of parking space
+        if (msg_upa_bcl_.range > parallel_length/2)
+        {
+            // turn full left
+            msg_cmd_turn_.data = 'L';
+            pub_turn_.publish(msg_cmd_turn_);
+            // move forward
+            msg_cmd_move_.data = speed_parking_forward;
+            pub_move_.publish(msg_cmd_move_);
+
+            break;
         }
 
         looprate.sleep();
@@ -613,10 +637,11 @@ void ParkingOut::parking_out_right_parallel()
         pub_turn_.publish(msg_cmd_turn_);
 
         // car head is out of parking space
-        if (msg_apa_rf_.range > distance_search)
+        if (msg_apa_rf_.range > distance_search && \
+            msg_upa_fr_.range > distance_search)
         {
-            // turn full right
-            msg_cmd_turn_.data = 'R';
+            // turn straight
+            msg_cmd_turn_.data = 'D';
             pub_turn_.publish(msg_cmd_turn_);
             // move forward
             msg_cmd_move_.data = speed_parking_forward;
@@ -653,6 +678,29 @@ void ParkingOut::parking_out_right_parallel()
                     pub_move_.publish(msg_cmd_move_);
                 }
             }
+        }
+
+        looprate.sleep();
+    }
+
+    // move forward until half of car rear is out of parking space
+    while (ros::ok())
+    {
+        // publish move and turn commands
+        pub_move_.publish(msg_cmd_move_);
+        pub_turn_.publish(msg_cmd_turn_);
+
+        // half of car rear is out of parking space
+        if (msg_upa_bcr_.range > parallel_length/2)
+        {
+            // turn full right
+            msg_cmd_turn_.data = 'R';
+            pub_turn_.publish(msg_cmd_turn_);
+            // move forward
+            msg_cmd_move_.data = speed_parking_forward;
+            pub_move_.publish(msg_cmd_move_);
+
+            break;
         }
 
         looprate.sleep();
